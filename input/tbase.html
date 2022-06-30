@@ -1,0 +1,219 @@
+{%
+-- The base layout as no dependencies
+setvar("layout","")
+
+
+language = language or "en"
+body = body or ""
+description = description or "An ASG website"
+title = title or "ASG"
+head = head or ""
+endscript = endscript or ""
+author = author or "vanyle"
+keywords = keywords or "blog, asg, vanyle"
+
+is_code = string.find(body,"<code class=", 1, true)
+-- do not care for false negatives, worst case is just page slow down.
+is_mermaid_diagram = string.find(body,"language-mermaid", 1, true)
+
+is_math = string.find(body, "$$",1,true) or string.find(body, "\\(",1,true)
+
+%}
+<!DOCTYPE html>
+<html lang="{{language}}">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="description" content="{{ description }}">
+	<meta name="author" content="{{ author }}">
+	<meta name="keywords" content="{{ keywords }}">
+	<title>{{ title }}</title>
+	<style>
+		body,html{
+			font-family: sans-serif;
+			display: flex;
+			flex-direction: column;
+			margin: 0;
+			padding: 0;
+		}
+		header{
+			display: flex;
+			background-color: white;
+			align-items: stretch;
+			justify-content: center;
+		}
+		header > div{
+			width: 60%;
+			display: flex;
+			align-items: stretch;
+			justify-content: space-between;
+		}
+		nav{
+			display: flex;
+			align-items: center;
+			height: 100%;
+		}
+		header h1{
+			display: flex;
+			align-items: center;
+			font-size: 1.3em;
+		}
+		nav > *{
+			padding: 5px 10px;
+			font-size: 1.3em;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			height: 100%;
+			cursor: pointer;
+		}
+		nav > *:hover{
+			background-color: #aaa;
+		}
+		nav > *:active{
+			transform: scale(0.9);
+		}
+		h1,h2,h3,h4,h5,h6{
+			margin: 5px;
+		}
+		section{
+			width: 60%;
+			margin: auto;
+		}
+		.card{
+			padding: 15px;
+			background-color: #eee;
+			margin: 6px;
+			border-radius: 10px;
+		}
+		.card .title{
+			cursor: pointer;
+			font-weight: bold;
+			display: inline-block;
+			text-decoration: none;
+			font-size: 1.4em;
+			color: inherit;
+		}
+		.card .title:active{
+			transform: scale(0.9);
+		}
+		.card .time{
+			color: #666;
+		}
+	</style>
+	{{ head }}
+</head>
+<body>
+	<header>
+		<div>
+			<h1>{{ title }}</h1>
+			<nav>
+				<a href="/">Home</a>
+				<a href="/about.html">About</a>
+				<a href="/search.html">Search</a>
+			</nav>
+		</div>
+	</header>
+	<section>
+	{{ body }}
+	</section>
+</body>
+
+{% if is_code then %}
+		<script defer>{{ include_asset("highlight.min.js") }}</script>
+		<style> {{ include_asset("highlight.min.css") }}</style>
+	{% end %}
+
+	{% if is_mermaid_diagram then %}
+		<script defer>{{ include_asset("mermaid.min.js") }}</script>
+	{% end %}
+
+	{% if is_math then %}
+		<script>{{ include_asset("katex.min.js") }}</script>
+		<script>{{ include_asset("katex-auto-render.min.js") }}</script>
+	<style>
+	@font-face{
+		font-family:KaTeX_AMS;
+		font-style:normal;
+		font-weight:400;
+		src:url(//fonts/KaTeX_AMS-Regular.woff) format("woff");
+	}
+
+{{ include_asset("katex.min.css") }}
+	</style>
+	{% end %}
+
+	<script>
+		addEventListener("DOMContentLoaded", () => {
+			if(typeof window.hljs !== "undefined"){
+				document.body.querySelectorAll("code.language-mermaid").forEach((el) => {
+					
+					el.className = "mermaid";
+					let tempId = "tempId51432"; 
+					el.id = tempId;
+					let prevParent = el.parentElement; 
+					let fn = (svgCode, bindFunctions) => {
+						let d = document.createElement("div");
+						d.innerHTML = svgCode;
+						prevParent.append(d); // for some reason, el get's removed from the DOM, so we add it back.
+					};
+					mermaid.mermaidAPI.render(tempId,el.innerText+"",fn);
+					el.id = "";
+				});
+			}
+
+			if(typeof window.hljs !== "undefined"){
+				window.hljs.highlightAll();
+			}
+
+			if(typeof window.renderMathInElement !== "undefined"){
+				renderMathInElement(document.body, {
+					delimiters: [
+						{left: '$$', right: '$$', display: true},
+						{left: '$', right: '$', display: false},
+						{left: '\\(', right: '\\)', display: true},
+						{left: '\\[', right: '\\]', display: false}
+					],
+					throwOnError : false
+				});
+			}
+
+			// Live reload. Try to reconnect when the connection fails.
+			if(location.hostname !== ""){
+				window.ws = null;
+				window.wsIsClosed = true;
+				let connectionMaker = () => {
+					if(wsIsClosed){
+						wsIsClosed = false;
+						try{
+							console.log("connecting...");
+							ws = new WebSocket("ws://"+location.host+"/ws");
+						}catch(err){} // don't spam the console.
+						ws.onmessage = (msg) => {
+							wsIsClosed = false;
+							if(msg.data == "reload"){
+								location.reload();
+							}else{
+								console.log(msg);
+							}
+						}
+						ws.onopen = () => {
+							console.log("Connected!");
+							wsIsClosed = false;
+						}
+						ws.onerror = () => {
+							wsIsClosed = true;
+						};
+						ws.onclose = () => {
+							wsIsClosed = true;
+						};
+					}
+				};
+				setInterval(connectionMaker, 1000);
+				connectionMaker();
+			}
+		});
+	</script>
+
+{{ endscript }}
+</html>
