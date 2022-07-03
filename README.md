@@ -1,4 +1,4 @@
-# Awesome Static generator
+# Awesome Static Generator
 
 ⭐ A program that converts markdown files into static websites. ⭐
 
@@ -25,7 +25,7 @@ There are many static site generators that can be used to write blogs, however, 
 - Templates are not based on a domain specific language (aka they use an executing well known language)
 - Reasonable build times (a.k.a not noticable for regular users)
 
-You can view ASG (Awesome static generator) as a compiler for HTML (or anything really).
+You can view ASG (Awesome Static Generator) as a compiler for HTML (or anything really).
 You can build websites quicker with it (or just generate plain text).
 
 You have access to components, you can make interactive demos and tutorials, everything!
