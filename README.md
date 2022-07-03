@@ -16,12 +16,6 @@
 - View your website as you type and save with live reloading.
 - Reasonable build times
 
-## TODO
-
-- Description for posts
-- Pretty default templates
-- Multithreaded builds so that we can show off on benchmarks
-
 ## Why / Use-cases
 
 There are many static site generators that can be used to write blogs, however, most lack at least some of the following features:
