@@ -1,7 +1,6 @@
 {%
-	setvar("layout","assets/light.html")
+	setvar("layout",theme .. ".html")
 	head = ""
-	birth = 2000
 	current_year = os.date("%Y")
 %}
 
@@ -12,12 +11,7 @@
 
 ## Fibonacci numbers
 
-Fibonacci numbers are a sequence that verifies the equation: \\( f_{n+1} = f_{n+1} + f_{n} \\) with \\( f_0 = 0, f_1 = 1 \\).
-
-*Written at {{ os.date() }}*
-
-Hi, I'm {{ name }}, I'm {{ math.floor(current_year - birth) }} years old and i like rambling about my life on the internet.
-
+Fibonacci numbers are a sequence that verifies the equation: $f_{n+1} = f_{n+1} + f_{n}$ with \\[f_0 = 0, f_1 = 1\\].
 
 The program below will print the first {{example_count}} fibonacci numbers:
 ```python

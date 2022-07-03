@@ -1,5 +1,5 @@
 {%
-setvar("layout","light.html")
+setvar("layout",theme .. ".html")
 
 %}
 

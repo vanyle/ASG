@@ -395,6 +395,15 @@ proc build(act: FileAction = EmptyAction) =
 	else:
 		displayError("Standard library not found",standard_library_path)
 
+	let start_of_build = now()
+
+	# Load config
+	let execution_result = L.doFile(joinPath(input_dir,"config.lua"))
+	if execution_result != 0:
+		let err_msg = L.tostring(-1.cint)
+		displayError(err_msg, joinPath(input_dir,"config.lua"))
+
+	let forceNoIncremental = "incrementalBuild" notin globalVarTable or globalVarTable["incrementalBuild"] == "false"
 
 	# Posts data
 	var posts: seq[string] = @[]
@@ -473,18 +482,6 @@ proc build(act: FileAction = EmptyAction) =
 
 		L.settable(-3) # stack layout: table, integer, {file,url}
 	L.setglobal("posts")
-	# Component data
-
-	# Data data
-	let start_of_build = now()
-
-	# run config.
-	let execution_result = L.doFile(joinPath(input_dir,"config.lua"))
-	if execution_result != 0:
-		let err_msg = L.tostring(-1.cint)
-		displayError(err_msg, joinPath(input_dir,"config.lua"))
-
-	let forceNoIncremental = "incrementalBuild" notin globalVarTable or globalVarTable["incrementalBuild"] == "false"
 
 	if act.filename == "":
 		# clean output repo for minimal sized build:
