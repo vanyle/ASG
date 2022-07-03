@@ -40,7 +40,9 @@ is good enough for live preview.
 
 ASG might be slower is you put very complex tasks in LUA (or a sleep / network access).
 
-We might consider switching from Lua 5.3 to Lua JIT in a later version for this reason.
+We use LuaJIT for execution, so make sure you have the Lua DLL somewhere nearby so that everything works.
+
+We might link it statically at some point in the future.
 
 
 ## Usage
