@@ -158,7 +158,8 @@ is_math = string.find(body, "$$",1,true) or string.find(body, "\\(",1,true) or s
 			}
 
 			// Live reload. Try to reconnect when the connection fails.
-			if(location.hostname !== ""){
+			{% if production == nil then %}
+			if(location.hostname === "localhost"){
 				window.ws = null;
 				window.wsIsClosed = true;
 				let connectionMaker = () => {
@@ -191,6 +192,7 @@ is_math = string.find(body, "$$",1,true) or string.find(body, "\\(",1,true) or s
 				setInterval(connectionMaker, 1000);
 				connectionMaker();
 			}
+			{% end %}
 		});
 	</script>
 

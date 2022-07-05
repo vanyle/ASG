@@ -42,7 +42,7 @@ type PartialParse = object
 	partialParseTime: Duration # used for profiling
 
 var L: PState = nil
-var c = initCommonmarkConfig()
+var c = initGfmConfig()
 let input_dir = parameters[0]
 let output_dir = parameters[1]
 var globalVarTable: Table[string,string]
@@ -484,8 +484,15 @@ proc build(act: FileAction = EmptyAction) =
 	L.setglobal("posts")
 
 	if act.filename == "":
-		# clean output repo for minimal sized build:
-		removeDir(output_dir, checkDir = false)
+		# clean output repo except for .git
+		for file in walkDir(output_dir):
+			let p = file.path
+			if not p.startswith("."):
+				# Ignore symbolic directories
+				if file.kind == pcFile:
+					discard tryRemoveFile(p)
+				elif file.kind == pcLinkToDir:
+					removeDir(p)
 		discard existsOrCreateDir(output_dir)
 
 	# Start by building the posts to generate the post list.
