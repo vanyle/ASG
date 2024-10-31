@@ -14,6 +14,8 @@ head = ""
 This is a blog about math, programing and art!
 It's generated using ASG (you can checkout more about ASG [here](https://github.com))
 
+Build using {{ jit.version }}
+
 </p>
 
 </main>

@@ -1,20 +1,20 @@
 # Awesome Static Generator
+*⭐ Converts Markdown into a Website ⭐*
 
-⭐ A program that converts markdown files into static websites. ⭐
 
-## Features
+## What makes ASG different?
 
-- Write pages in Markdown
+- Write markdown
+- **Lua scripting** for templates
 - Use ready-made templates to customize your website
 - Extend existing templates or create your own
-- Support latex, mermaid diagrams and code highlighting
+- Support **latex**, **mermaid diagrams** and **code highlighting**
 - Convert Obsidian/Typora notes into a fancy static website
 - Generate home page and links
-- Lua scripting for templates
 - Generate short HTML with fast load times by building dependencies and only including them when necessary
-- Standalone executable (no dependencies)
-- View your website as you type and save with live reloading.
-- Reasonable build times
+- **Standalone executable** (no dependencies)
+- View your website as you type and save with **live reloading**.
+- Reasonable (sub-second) build times
 
 ## Why / Use-cases
 
@@ -53,7 +53,9 @@ that stores all the configuration.
 
 The static website will be generated inside `<output_directory>`
 
-More information available inside [the usage manual](./USAGE.md)
+More information available inside [the usage manual](./docs/usage.md)
+
+Check out [how to use ASG with Github Pages to publish your website](./docs/github.md)
 
 ## Examples
 

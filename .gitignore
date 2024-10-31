@@ -1,3 +1,4 @@
 *.exe
 *.dll
 /website_output/
+tests/output

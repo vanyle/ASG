@@ -1,7 +1,7 @@
-# Compile ASG (-d:release -d:danger)
-nimble build --threads:on -d:release -d:danger -d:asyncBackend=chronos
+# Compile ASG (-d:release -d:danger) --cc:tcc for faster compilation
+nimble build --threads:on --cc:clang -d:release -d:danger -d:asyncBackend=chronos
 # Launch it
-Start-Process ./asg.exe -Argument "input website_output" 
+# Start-Process ./asg.exe -Argument "input website_output" 
 
 # Perform a few modification to the input folder. The browser should be opened at localhost while doing this
 # to test the websockets.

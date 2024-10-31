@@ -7,7 +7,7 @@ import tables, sets
 import asynchttpserver
 import asyncdispatch
 import ws
-import nimwatch
+import nimwatch/nimwatch
 
 
 let parameters = commandLineParams()
@@ -41,7 +41,7 @@ type PartialParse = object
 	realPath: string
 	partialParseTime: Duration # used for profiling
 
-var L: PState = nil
+var L: PState = nil.PState
 var c = initGfmConfig()
 let input_dir = parameters[0]
 let output_dir = parameters[1]
@@ -426,7 +426,7 @@ proc build(act: FileAction = EmptyAction) =
 	#[
 		posts = {post1, post2, {file: input/filename, url: filename.html}}
 	]#
-	L.createTable(0,posts.len)
+	L.createTable(0.cint, posts.len.cint)
 	for i in 0..<posts.len:
 		if posts[i] notin fileParseInfo: continue
 		let info = fileParseInfo[posts[i]]
@@ -503,6 +503,10 @@ proc build(act: FileAction = EmptyAction) =
 				generated_file = joinPath(output_dir,relativePath(generated_file, input_dir))
 				let result = compileFile(file,generated_file)
 				
+				if "outfile" in globalVarTable:
+					generated_file = joinPath(output_dir,relativePath(globalVarTable["outfile"], input_dir))
+					globalVarTable.del("outfile")
+
 				if not fileExists(parentDir(generated_file)):
 					createDir(parentDir(generated_file))
 				try:
@@ -533,6 +537,10 @@ proc build(act: FileAction = EmptyAction) =
 			else:
 				# We can't just rename on a rename action because the lua might use the file name to generate the content.
 				let result = compileFile(file,generated_file)
+				if "outfile" in globalVarTable:
+					generated_file = joinPath(output_dir,relativePath(globalVarTable["outfile"], input_dir))
+					globalVarTable.del("outfile")
+
 				if not fileExists(parentDir(generated_file)):
 					createDir(parentDir(generated_file))
 				try:
@@ -559,22 +567,19 @@ proc build(act: FileAction = EmptyAction) =
 		echo "--> Total build time: ",(now() - start_of_build)
 
 
-build()
 var port = 8080
-var monitor = newWatcher(input_dir)
 var connections {.threadvar.}: seq[WebSocket]
+var monitor = newWatcher(input_dir)
 
-proc rebuild(act: FileAction) =
-	build(act)
-	let profiler = "profiler" in globalVarTable and globalVarTable["profiler"] == "true"
+proc rebuild(act: FileAction) {.gcsafe.} =
+	{.gcsafe.}:
+		build(act)
+		let profiler = "profiler" in globalVarTable and globalVarTable["profiler"] == "true"
 
-	if profiler:
-		echo connections.len, " clients notified of change."
-	for i in 0..<connections.len:
-		discard connections[i].send "reload"
-
-#var chan: Channel[string]
-#var chanRef = chan.addr
+		if profiler:
+			echo connections.len, " clients notified of change."
+		for i in 0..<connections.len:
+			discard connections[i].send "reload"
 
 # Server listening function
 proc serverHandler() {.async.} =
@@ -623,7 +628,6 @@ proc serverHandler() {.async.} =
 		var headers: seq[(string,string)]
 		await req.respond(Http200, content, headers.newHttpHeaders())
 
-
 	server.listen(Port(port))
 	echo "Listening at: http://localhost:",port
 
@@ -634,11 +638,19 @@ proc serverHandler() {.async.} =
 			await sleepAsync(500)
 
 
-if "port" in globalVarTable:
-	# serve
-	port = globalVarTable["port"].parseInt
+proc asyncMain() {.async.} =
+	# Live reload and server stuff
 	if "livereload" in globalVarTable and globalVarTable["livereload"] == "true":
 		monitor.register(rebuild)
-		discard monitor.watch()
-	echo "Live reload enabled."
-	waitFor serverHandler()
+		asyncCheck monitor.watch()
+		echo "Live reload enabled."
+	
+	if "port" in globalVarTable:
+		port = globalVarTable["port"].parseInt
+		await serverHandler()
+
+proc main() =
+	build()
+	waitFor asyncMain()
+
+main()

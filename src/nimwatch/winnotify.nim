@@ -1,5 +1,4 @@
 
-import oldwinapi/windows
 import threadpool
 import types
 import asyncdispatch
@@ -10,6 +9,51 @@ const FILE_ACTION_MODIFIED* = 0x00000003
 const FILE_ACTION_RENAMED_OLD_NAME* = 0x00000004
 const FILE_ACTION_RENAMED_NEW_NAME* = 0x00000005
 
+# Manually define windows types
+type
+  OVERLAPPED* {.final, pure.} = object
+    Internal*: DWORD
+    InternalHigh*: DWORD
+    Offset*: DWORD
+    OffsetHigh*: DWORD
+    hEvent*: HANDLE
+  
+  SECURITY_ATTRIBUTES* {.final, pure.} = object
+    nLength*: DWORD
+    lpSecurityDescriptor*: LPVOID
+    bInheritHandle*: WINBOOL
+
+  LPCWSTR* = ptr uint16
+  DWORD* = int32
+  WINBOOL* = int32
+  WORD* = int16
+  HANDLE* = int
+  LPVOID* = pointer
+  LPDWORD* = ptr DWORD
+  LPCSTR* = cstring
+  LPOVERLAPPED* = ptr OVERLAPPED
+  LPSECURITY_ATTRIBUTES* = ptr SECURITY_ATTRIBUTES
+  LPOVERLAPPED_COMPLETION_ROUTINE* = proc (para1: DWORD, para2: DWORD,
+      para3: LPOVERLAPPED){.stdcall.}
+
+const
+  FILE_NOTIFY_CHANGE_FILE_NAME* = 1
+  FILE_NOTIFY_CHANGE_DIR_NAME* = 2
+  FILE_NOTIFY_CHANGE_ATTRIBUTES* = 4
+  FILE_NOTIFY_CHANGE_SIZE* = 8
+  FILE_NOTIFY_CHANGE_LAST_WRITE* = 16
+  FILE_NOTIFY_CHANGE_SECURITY* = 256
+  INVALID_HANDLE_VALUE* = HANDLE(-1)
+  FILE_LIST_DIRECTORY* = 0x00000001 # directory
+  FILE_SHARE_DELETE* = 4
+  FILE_SHARE_READ* = 1
+  FILE_SHARE_WRITE* = 2
+  CREATE_NEW* = 1
+  CREATE_ALWAYS* = 2
+  OPEN_EXISTING* = 3
+  OPEN_ALWAYS* = 4
+  FILE_FLAG_OVERLAPPED* = 1073741824
+  FILE_FLAG_BACKUP_SEMANTICS* = 33554432
 {.push boundChecks: off.}
 
 type
@@ -23,6 +67,16 @@ type
 converter toWINBOOL*(b: bool): WINBOOL = cast[WINBOOL](b)
 converter toBool*(b: WINBOOL): bool = cast[bool](b)
 converter toDWORD*(x: int): DWORD = cast[DWORD](x)
+
+proc CreateFile*(lpFileName: LPCSTR, dwDesiredAccess: DWORD,
+                  dwShareMode: DWORD,
+                  lpSecurityAttributes: LPSECURITY_ATTRIBUTES,
+                  dwCreationDisposition: DWORD, dwFlagsAndAttributes: DWORD,
+                  hTemplateFile: HANDLE): HANDLE{.stdcall, dynlib: "kernel32",
+    importc: "CreateFileA".}
+
+proc CloseHandle*(hObject: HANDLE): WINBOOL{.stdcall, dynlib: "kernel32",
+    importc: "CloseHandle".}
 
 proc ReadDirectoryChangesW*(
   hDirectory: HANDLE,
