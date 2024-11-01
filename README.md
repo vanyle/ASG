@@ -6,6 +6,17 @@
 Go to the [release page](https://github.com/vanyle/ASG/releases) and download the latest version for your OS.
 Unzip the file where you want and add the location to your path.
 
+
+On linux, using bash, you can do:
+```bash
+cd ~
+curl -L https://github.com/vanyle/ASG/releases/download/0.0.1/asg-0.0.1-linux-amd64.tar.gz > asg.tar.gz && tar xzf asg.tar.gz
+mv build asg
+rm asg.tar.gz
+# Add asg to your path. for example, if you are using bash, add the following to your .bashrc
+export PATH="~/asg:$PATH"
+```
+
 To start ASG, do: `asg <input_directory> <output_directory>`
 
 There are no other arguments as the `input_directory` should contain a config file that stores all the configuration.
