@@ -1,4 +1,4 @@
-name: Compile
+name: Release
 on:
   workflow_dispatch:
     inputs:
@@ -31,8 +31,9 @@ jobs:
       - run: sudo apt-get install -y libluajit-5.1-dev
       - run: nimble install --depsOnly
 
-      - run: nimble build -d:release -d:strip -d:lto
-      - run: nimble test
+      - run: nimble build -d:release -d:strip --opt:size -d:lto
+      - run: cp -r ./assets ./build
+      - run: tar cvfz asg-${{ inputs.tag || github.ref_name }}-linux-amd64.tar.gz build/*
 
       - name: Create a Release
         uses: elgohr/Github-Release-Action@v5
@@ -46,7 +47,7 @@ jobs:
 
       - uses: AButler/upload-release-assets@v3.0
         with:
-          files: "build/*"
+          files: "*.tar.gz"
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           release-tag: "v${{ inputs.tag || github.ref_name }}"
 
@@ -61,9 +62,10 @@ jobs:
           install: >-
             mingw-w64-x86_64-luajit
             mingw-w64-x86_64-gcc
+
       - run: git config --global core.autocrlf input
-      - run: msys2 -c 'pacman --noconfirm -S mingw-w64-x86_64-luajit'
-      - run: $env:Path = 'C:\msys64\mingw64\bin;' + $env:Path
+      - run: $env:GITHUB_PATH = 'C:\msys64\mingw64\bin;' + $env:GITHUB_PATH
+      - run: echo "C:/msys64/mingw64/bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
       - uses: actions/checkout@v4
 
       - name: Cache nimble
@@ -80,11 +82,13 @@ jobs:
           nim-version: "2.2.0"
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - run: ls C:/msys64/mingw64/lib
+      - run: where.exe gcc
       - run: nimble install --depsOnly
-      - run: nimble build -d:release -d:strip -d:lto --cc:gcc --passL:"-LC:/msys64/mingw64/lib" --gcc.exe=gcc --gcc.linkerexe=gcc
+      - run: nimble build -d:release -d:strip --opt:size --passL:"-LC:/msys64/mingw64/lib"
+      - run: cp -r ./assets ./build
+      - run: tar cvfz asg-${{ inputs.tag || github.ref_name }}-windows-amd64.tar.gz build/*
       - uses: AButler/upload-release-assets@v3.0
         with:
-          files: "build/*"
+          files: "*.tar.gz"
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           release-tag: "v${{ inputs.tag || github.ref_name }}"
