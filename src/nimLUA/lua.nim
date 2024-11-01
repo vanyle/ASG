@@ -7,12 +7,25 @@ const
 
 
 # We target luajit specificaly.
-when not defined(nojit):
-  echo "Linking using Lua JIT. Use -d:nojit to disable this."
-  {.passL: "-lluajit-5.1".}
-elif not defined(nostatic):
-  echo "Linking using Lua. Use -d:nostatic for dynamic linking."
-  {.passL: "-llua".}
+when defined(CI):
+  echo "Linking using LUA JIT from CI."
+  {.passL: "-lluajit".}
+else:
+  when not defined(nojit):
+    echo "Linking using Lua JIT. Use -d:nojit to disable this."
+    {.passL: "-lluajit-5.1".}
+  elif not defined(nostatic):
+    echo "Linking using Lua. Use -d:nostatic and -d:nojit for dynamic linking."
+    {.passL: "-llua".}
+  else:
+    when defined(MACOSX):
+      const LIB_NAME* = "libluajit.dylib"
+    elif defined(FREEBSD):
+      const LIB_NAME* = "libluajit-5.1.so"
+    elif defined(UNIX):
+      const LIB_NAME* = "libluajit.so"
+    else:
+      const LIB_NAME* = "luajit.dll"
 
 const
   # mark for precompiled code ('<esc>Lua')
@@ -106,9 +119,17 @@ type
   lua_Number* = float64  # type of numbers in Lua
   lua_Integer* = int64    # ptrdiff_t \ type for integer functions
 
-{.pragma: ilua, cdecl, importc: "lua_$1".} # lua.h
-{.pragma: iluaLIB, cdecl, importc: "lua$1".} # lualib.h
-{.pragma: iluaL, cdecl, importc: "luaL_$1".} # lauxlib.h
+
+when not defined(nostatic) and not defined(nojit):
+  {.pragma: ilua, cdecl, importc: "lua_$1".} # lua.h
+  {.pragma: iluaLIB, cdecl, importc: "lua$1".} # lualib.h
+  {.pragma: iluaL, cdecl, importc: "luaL_$1".} # lauxlib.h
+else:
+  {.push callconv: cdecl, dynlib: LIB_NAME .} # importc: "lua_$1"  was not allowed?
+  {.pragma: ilua, importc: "lua_$1".} # lua.h
+  {.pragma: iluaLIB, importc: "lua$1".} # lualib.h
+  {.pragma: iluaL, importc: "luaL_$1".} # lauxlib.h
+
 
 proc newstate*(f: TAlloc; ud: pointer): PState {.ilua.}
 proc close*(L: PState) {.ilua.}

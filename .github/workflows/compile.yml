@@ -28,10 +28,7 @@ jobs:
           nim-version: "2.2.0"
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: ilammy/msvc-dev-cmd@v1
-      - uses: leafo/gh-actions-lua@v10
-        with:
-          luaVersion: "luajit-openresty"
+      - run: sudo apt-get install -y libluajit-5.1-dev
 
       - run: nimble build -d:release
       - run: nimble test
