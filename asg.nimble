@@ -4,6 +4,7 @@ description   = "An awesome static site generator"
 license       = "MIT"
 
 srcDir = "src"
+binDir = "build"
 bin = @["asg"]
 
 requires "markdown"
@@ -11,3 +12,4 @@ requires "ws"
 requires "fsnotify"
 requires "chronos"
 requires "weave"
+requires "htmlparser"

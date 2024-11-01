@@ -1,0 +1,20 @@
+{%
+-- Paper is the theme for documentation and wikis.
+-- It is inspired by Sphinx.
+
+setvar("layout","base.html")
+
+-- Parse the body to extract the structure.
+-- structure = parse_html(body)
+-- for k,v in pairs(structure) do
+
+style = style or ""
+style = style .. [[
+<style>
+   
+</style>
+]]
+
+%}
+
+{{ body }}

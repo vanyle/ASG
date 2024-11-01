@@ -1,0 +1,82 @@
+{%
+-- The base layout as no dependencies
+setvar("layout","base.html")
+language = language or "en"
+body = body or ""
+description = description or "An ASG website"
+title = title or "ASG"
+head = head or ""
+
+footer = footer or [[
+<p> © ]] .. os.date("%Y") .. [[ - Antoine Delègue - Powered by ASG</p>
+]]
+
+endscript = endscript or ""
+author = author or "vanyle"
+keywords = keywords or "blog, asg, vanyle"
+
+style = style or [[
+	<style>
+		body,html{
+			font-family: sans-serif;
+			display: flex;
+			flex-direction: column;
+			margin: 0;
+			padding: 0;
+			width: 100%;
+			height: 100%;
+		}
+		header{
+			display: flex;
+			align-items: stretch;
+			justify-content: center;
+		}
+		header a{
+			text-decoration: none;
+		}
+		a{
+			color: inherit;
+			cursor: pointer;
+		}
+		main{
+			padding: 10px;
+		}
+		header > div{
+			width: min(max(60%, 500px), 100%);
+			height: 100%;
+			display: flex;
+			align-items: stretch;
+			justify-content: space-between;
+		}
+		nav{
+			display: flex;
+			align-items: center;
+			height: 100%;
+		}
+		header h1{
+			display: flex;
+			align-items: center;
+			font-size: 2em;
+			font-weight: normal;
+		}
+	</style>
+]]
+
+%}
+
+<header>
+    <div>
+        <h1>{{ title }}</h1>
+        <nav>
+            <a href="/">Home</a>
+            <a href="/about.html">About</a>
+            <a href="/search.html">Search</a>
+        </nav>
+    </div>
+</header>
+<section>
+{{ body }}
+</section>
+<footer>
+    {{ footer }}
+</footer>

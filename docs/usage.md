@@ -134,10 +134,10 @@ By default, we provide several lua functions to help you generate HTML.
 
 ## Configuration
 
-Use the `setvar` function to configure your build. You can put the `setvar` calls in `config.lua` (at the root of your website folder) is you want but you don't have do.
+Use the `setvar` function to configure your build. You can put the `setvar` calls in `config.lua` (at the root of your website folder) if you want but you don't have do.
 Before any file is built, `config.lua` will always get executed.
 
-The configuration options are (thein name are explicit):
+The configuration options are (their names are explicit):
 ```lua
 
 setvar("port","8080") -- default: no webserver is started
@@ -149,6 +149,8 @@ setvar("debugInfo","true") -- default: false
 setvar("incrementalBuild","true") -- default: true
 
 setvar("coloredErrors","true") -- default: false
+
+setvar("profiler","true") -- default: false
 
 ```
 
@@ -168,7 +170,15 @@ Lua code is executed starting with the source file and down the layout chain, en
 Layouts cannot be used twice in the layout chain to avoid infinite loops.
 You cannot set multiple layouts for one page.
 
-Usually, to use a given template, you set a few variables that the template uses and you cann setvar.
+The rendering algorithm for a page looks like this:
+1. Take the content of the current page, execute its lua code and render its markdown to get a string.
+2. If the layout variable was set:
+   1. set the current page to the layout variable
+   2. set the body variable to the result of the render
+   3. go to step 1 (All the variables set by the page are preserved.)
+3. If the layout variable was not set, write the result of the render to the output directory.
+
+In practice, this means that to use a given template, you set a few variables that the template uses with setvar.
 For example, let's say that you want to use a template for the home page of your blog, then you might write
 something like:
 
@@ -185,4 +195,12 @@ Hello, and welcome to my blog!
 ``` 
 
 Then the "layout" template will use the `body` variable as well as the `homepage_layout` and `title`
-variable to generate your homepage !
+variable to generate your homepage!
+
+## Lua Runtime
+
+By default, ASG will use Lua JIT as the lua runtime for best performance.
+You can disable this by passing the `-d:nojit` flag when compiling. You'll usually do this
+if you want Lua 5.4 features or if you did not install lua jit on your computer and have compilation errors.
+
+This is not recommended as ASG is defined for Lua JIT.

@@ -14,7 +14,8 @@
 - Generate short HTML with fast load times by building dependencies and only including them when necessary
 - **Standalone executable** (no dependencies)
 - View your website as you type and save with **live reloading**.
-- Reasonable (sub-second) build times
+- Incremental build support
+- Reasonable (sub-second) build times, even when incremental builds are disabled
 
 ## Why / Use-cases
 

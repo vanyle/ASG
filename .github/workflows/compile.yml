@@ -1,0 +1,53 @@
+name: Compile
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag"
+        required: true
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Cache nimble
+        id: cache-nimble
+        uses: actions/cache@v4
+        with:
+          path: ~/.nimble
+          key: ${{ runner.os }}-nimble-v2-${{ hashFiles('*.nimble') }}
+          restore-keys: |
+            ${{ runner.os }}-nimble-v2-
+      - uses: jiro4989/setup-nim-action@v2
+        with:
+          nim-version: "2.2.0"
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: ilammy/msvc-dev-cmd@v1
+      - uses: leafo/gh-actions-lua@v10
+        with:
+          luaVersion: "luajit-openresty"
+
+      - run: nimble build -d:release
+      - run: nimble test
+
+      - name: Create a Release
+        uses: elgohr/Github-Release-Action@v5
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          workdir: build
+          # ref_name is the tag.
+          title: "ASG-${{ github.ref_name || inputs.tags }}"
+          tag: "v${{ github.ref_name || inputs.tags }}"
+
+      - uses: AButler/upload-release-assets@v3.0
+        with:
+          files: "build/*"
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          release-tag: "v${{ github.ref_name || inputs.tags }}"
