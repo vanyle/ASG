@@ -10,11 +10,11 @@ const
 when not defined(nojit):
   static:
     echo "Linking using Lua JIT. Use -d:nojit to disable this."
-  {.passL: "-lluajit-5.1".}
+  {.passL: "-lluajit-5.1 -lm -static".}
 elif not defined(nostatic):
   static:
     echo "Linking using Lua. Use -d:nostatic and -d:nojit for dynamic linking."
-  {.passL: "-llua".}
+  {.passL: "-llua -lm -static".}
 else:
   static:
     echo "Linking dynamically"
@@ -120,7 +120,7 @@ type
   lua_Integer* = int64    # ptrdiff_t \ type for integer functions
 
 
-when not defined(nostatic) and not defined(nojit):
+when not defined(nostatic) or not defined(nojit):
   {.pragma: ilua, cdecl, importc: "lua_$1".} # lua.h
   {.pragma: iluaLIB, cdecl, importc: "lua$1".} # lualib.h
   {.pragma: iluaL, cdecl, importc: "luaL_$1".} # lauxlib.h

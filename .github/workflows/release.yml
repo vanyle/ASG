@@ -7,7 +7,7 @@ on:
         required: true
   push:
     tags:
-      - "v*"
+      - "[0-9]+.[0-9]+.[0-9]+"
 
 jobs:
   release-ubuntu:
@@ -31,7 +31,7 @@ jobs:
       - run: sudo apt-get install -y libluajit-5.1-dev
       - run: nimble install --depsOnly
 
-      - run: nimble build -d:release -d:strip --opt:size -d:lto
+      - run: nimble build
       - run: cp -r ./assets ./build
       - run: tar cvfz asg-${{ inputs.tag || github.ref_name }}-linux-amd64.tar.gz build/*
 
@@ -43,13 +43,13 @@ jobs:
           workdir: build
           # ref_name is the tag.
           title: "ASG-${{ inputs.tag || github.ref_name }}"
-          tag: "v${{ inputs.tag || github.ref_name }}"
+          tag: "${{ inputs.tag || github.ref_name }}"
 
       - uses: AButler/upload-release-assets@v3.0
         with:
           files: "*.tar.gz"
           repo-token: ${{ secrets.GITHUB_TOKEN }}
-          release-tag: "v${{ inputs.tag || github.ref_name }}"
+          release-tag: "${{ inputs.tag || github.ref_name }}"
 
   release-windows:
     runs-on: windows-latest
@@ -88,4 +88,4 @@ jobs:
         with:
           files: "*.tar.gz"
           repo-token: ${{ secrets.GITHUB_TOKEN }}
-          release-tag: "v${{ inputs.tag || github.ref_name }}"
+          release-tag: "${{ inputs.tag || github.ref_name }}"
