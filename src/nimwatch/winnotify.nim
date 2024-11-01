@@ -11,23 +11,14 @@ const FILE_ACTION_RENAMED_NEW_NAME* = 0x00000005
 
 # Manually define windows types
 type
-  OVERLAPPED* {.final, pure.} = object
-    Internal*: DWORD
-    InternalHigh*: DWORD
-    Offset*: DWORD
-    OffsetHigh*: DWORD
-    hEvent*: HANDLE
-  
-  SECURITY_ATTRIBUTES* {.final, pure.} = object
-    nLength*: DWORD
-    lpSecurityDescriptor*: LPVOID
-    bInheritHandle*: WINBOOL
+  OVERLAPPED* {.importc: "OVERLAPPED", header: "winbase.h".} = object  
+  SECURITY_ATTRIBUTES* {.importc: "SECURITY_ATTRIBUTES", header: "winbase.h".} = object
 
   LPCWSTR* = ptr uint16
-  DWORD* = int32
+  DWORD* = culong #  typedef unsigned long DWORD, *PDWORD, *LPDWORD; according to microsoft docs.
   WINBOOL* = int32
   WORD* = int16
-  HANDLE* = int
+  HANDLE* = pointer
   LPVOID* = pointer
   LPDWORD* = ptr DWORD
   LPCSTR* = cstring
@@ -43,7 +34,7 @@ const
   FILE_NOTIFY_CHANGE_SIZE* = 8
   FILE_NOTIFY_CHANGE_LAST_WRITE* = 16
   FILE_NOTIFY_CHANGE_SECURITY* = 256
-  INVALID_HANDLE_VALUE* = HANDLE(-1)
+  INVALID_HANDLE_VALUE* = cast[HANDLE](-1)
   FILE_LIST_DIRECTORY* = 0x00000001 # directory
   FILE_SHARE_DELETE* = 4
   FILE_SHARE_READ* = 1
@@ -97,7 +88,7 @@ proc readEvents*(watcher: Watcher, evt: AsyncEvent, buflen: int): seq[FileAction
   var bytesReturned: DWORD
 
   discard ReadDirectoryChangesW(
-    HANDLE(watcher.fd),
+    cast[HANDLE](watcher.fd.int),
     cast[LPVOID](buffer),
     bufsize,
     true, # watch sub stree
@@ -127,9 +118,9 @@ proc readEvents*(watcher: Watcher, evt: AsyncEvent, buflen: int): seq[FileAction
 
     let lenBytes = pData.FileNameLength
     if lenBytes > 0:
-      var filename = newWideCString("", lenBytes div 2) # lenBytes and null character
+      var filename = newWideCString("", lenBytes.int div 2) # lenBytes and null character
       copyMem(filename[0].addr,pData[].Filename[0].addr, lenBytes)
-      filename[lenBytes] = 0.Utf16Char # set the null char
+      filename[lenBytes.int] = 0.Utf16Char # set the null char
       action.filename = $filename
     ret.add(action)
     if pData[].NextEntryOffset == 0:
@@ -144,7 +135,7 @@ proc readEvents*(watcher: Watcher, evt: AsyncEvent, buflen: int): seq[FileAction
 #
 
 proc init*(watcher: Watcher) =
-  watcher.fd = AsyncFD(CreateFile(
+  watcher.fd = AsyncFD(cast[int](CreateFile(
     cast[LPCSTR](watcher.target.cstring), 
     FILE_LIST_DIRECTORY,
     FILE_SHARE_READ or FILE_SHARE_WRITE or FILE_SHARE_DELETE, 
@@ -152,8 +143,8 @@ proc init*(watcher: Watcher) =
     OPEN_EXISTING,
     FILE_FLAG_BACKUP_SEMANTICS or FILE_FLAG_OVERLAPPED,
     cast[HANDLE](nil)
-  ))
-  if HANDLE(watcher.fd) == INVALID_HANDLE_VALUE:
+  )))
+  if cast[HANDLE](watcher.fd) == INVALID_HANDLE_VALUE:
     raise newException(OSError, "not existing file or directory: " & watcher.target)
   register(watcher.fd)
 
@@ -168,6 +159,6 @@ proc read*(watcher: Watcher): Future[seq[FileAction]] =
   return f
 
 proc close*(watcher: Watcher) =
-  discard CloseHandle(HANDLE(watcher.fd))
+  discard CloseHandle(cast[HANDLE](watcher.fd.int))
 
 {.pop.}
