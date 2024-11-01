@@ -77,7 +77,8 @@ proc readEvents*(fd: FD): Future[seq[FileAction]] =
 proc init*(watcher: Watcher) =
   let fd = inotify_init()
   watcher.fd = fd
-  watcher.wd = inotify_add_watch(fd, watcher.target, DefaultEvents)
+  var targetC = watcher.target
+  watcher.wd = inotify_add_watch(fd, targetC.cstring, DefaultEvents)
   register(fd)
 
 proc read*(watcher: Watcher): Future[seq[FileAction]] =

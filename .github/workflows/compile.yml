@@ -10,10 +10,10 @@ on:
       - "v*"
 
 jobs:
-  release:
+  release-ubuntu:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Cache nimble
         id: cache-nimble
@@ -29,8 +29,9 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       - run: sudo apt-get install -y libluajit-5.1-dev
+      - run: nimble install --depsOnly
 
-      - run: nimble build -d:release
+      - run: nimble build -d:release -d:strip -d:lto
       - run: nimble test
 
       - name: Create a Release
@@ -40,11 +41,50 @@ jobs:
         with:
           workdir: build
           # ref_name is the tag.
-          title: "ASG-${{ github.ref_name || inputs.tags }}"
-          tag: "v${{ github.ref_name || inputs.tags }}"
+          title: "ASG-${{ inputs.tag || github.ref_name }}"
+          tag: "v${{ inputs.tag || github.ref_name }}"
 
       - uses: AButler/upload-release-assets@v3.0
         with:
           files: "build/*"
           repo-token: ${{ secrets.GITHUB_TOKEN }}
-          release-tag: "v${{ github.ref_name || inputs.tags }}"
+          release-tag: "v${{ inputs.tag || github.ref_name }}"
+
+  release-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: msys2/setup-msys2@v2
+        with:
+          release: false
+          update: true
+          msystem: MINGW64
+          install: >-
+            mingw-w64-x86_64-luajit
+            mingw-w64-x86_64-gcc
+      - run: git config --global core.autocrlf input
+      - run: msys2 -c 'pacman --noconfirm -S mingw-w64-x86_64-luajit'
+      - run: $env:Path = 'C:\msys64\mingw64\bin;' + $env:Path
+      - uses: actions/checkout@v4
+
+      - name: Cache nimble
+        id: cache-nimble
+        uses: actions/cache@v4
+        with:
+          path: ~/.nimble
+          key: ${{ runner.os }}-nimble-v2-${{ hashFiles('*.nimble') }}
+          restore-keys: |
+            ${{ runner.os }}-nimble-v2-
+
+      - uses: jiro4989/setup-nim-action@v2
+        with:
+          nim-version: "2.2.0"
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - run: ls C:/msys64/mingw64/lib
+      - run: nimble install --depsOnly
+      - run: nimble build -d:release -d:strip -d:lto --cc:gcc --passL:"-LC:/msys64/mingw64/lib" --gcc.exe=gcc --gcc.linkerexe=gcc
+      - uses: AButler/upload-release-assets@v3.0
+        with:
+          files: "build/*"
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          release-tag: "v${{ inputs.tag || github.ref_name }}"

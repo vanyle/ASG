@@ -7,25 +7,25 @@ const
 
 
 # We target luajit specificaly.
-when defined(CI):
-  echo "Linking using LUA JIT from CI."
-  {.passL: "-lluajit".}
-else:
-  when not defined(nojit):
+when not defined(nojit):
+  static:
     echo "Linking using Lua JIT. Use -d:nojit to disable this."
-    {.passL: "-lluajit-5.1".}
-  elif not defined(nostatic):
+  {.passL: "-lluajit-5.1".}
+elif not defined(nostatic):
+  static:
     echo "Linking using Lua. Use -d:nostatic and -d:nojit for dynamic linking."
-    {.passL: "-llua".}
+  {.passL: "-llua".}
+else:
+  static:
+    echo "Linking dynamically"
+  when defined(MACOSX):
+    const LIB_NAME* = "libluajit.dylib"
+  elif defined(FREEBSD):
+    const LIB_NAME* = "libluajit-5.1.so"
+  elif defined(UNIX):
+    const LIB_NAME* = "libluajit.so"
   else:
-    when defined(MACOSX):
-      const LIB_NAME* = "libluajit.dylib"
-    elif defined(FREEBSD):
-      const LIB_NAME* = "libluajit-5.1.so"
-    elif defined(UNIX):
-      const LIB_NAME* = "libluajit.so"
-    else:
-      const LIB_NAME* = "luajit.dll"
+    const LIB_NAME* = "luajit.dll"
 
 const
   # mark for precompiled code ('<esc>Lua')
