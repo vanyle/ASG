@@ -1,8 +1,22 @@
 # Awesome Static Generator
 *⭐ Converts Markdown into a Website ⭐*
 
+## Getting started
 
-## What makes ASG different?
+Go to the [release page](https://github.com/vanyle/ASG/releases) and download the latest version for your OS.
+Unzip the file where you want and add the location to your path.
+
+To start ASG, do: `asg <input_directory> <output_directory>`
+
+There are no other arguments as the `input_directory` should contain a config file that stores all the configuration.
+
+The static website will be generated inside `<output_directory>`
+
+More information available inside [the usage manual](./docs/usage.md)
+
+Check out [how to use ASG with Github Pages to publish your website](./docs/github.md)
+
+## Key features
 
 - Write markdown
 - **Lua scripting** for templates
@@ -17,7 +31,7 @@
 - Incremental build support
 - Reasonable (sub-second) build times, even when incremental builds are disabled
 
-## Why / Use-cases
+## What makes ASG different from other website generators?
 
 There are many static site generators that can be used to write blogs, however, most lack at least some of the following features:
 
@@ -46,20 +60,8 @@ We use LuaJIT for execution, so make sure you have the Lua DLL somewhere nearby 
 We might link it statically at some point in the future.
 
 
-## Usage
-
-Use: `asg <input_directory> <output_directory>`
-There are no arguments as the `input_directory` should contain a config file
-that stores all the configuration.
-
-The static website will be generated inside `<output_directory>`
-
-More information available inside [the usage manual](./docs/usage.md)
-
-Check out [how to use ASG with Github Pages to publish your website](./docs/github.md)
-
 ## Examples
 
-You can see examples in the `examples` folder.
-Every subfolder of examples contains a different website that can be built.
+You can see examples in the [`tests/input` folder](./tests/input/).
+Every subfolder contains a different website that can be built.
 You can take an example an extend it to create your own website!
