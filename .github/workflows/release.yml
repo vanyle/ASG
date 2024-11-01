@@ -43,13 +43,13 @@ jobs:
           workdir: build
           # ref_name is the tag.
           title: "ASG-${{ inputs.tag || github.ref_name }}"
-          tag: "v${{ inputs.tag || github.ref_name }}"
+          tag: "${{ inputs.tag || github.ref_name }}"
 
       - uses: AButler/upload-release-assets@v3.0
         with:
           files: "*.tar.gz"
           repo-token: ${{ secrets.GITHUB_TOKEN }}
-          release-tag: "v${{ inputs.tag || github.ref_name }}"
+          release-tag: "${{ inputs.tag || github.ref_name }}"
 
   release-windows:
     runs-on: windows-latest
@@ -88,4 +88,4 @@ jobs:
         with:
           files: "*.tar.gz"
           repo-token: ${{ secrets.GITHUB_TOKEN }}
-          release-tag: "v${{ inputs.tag || github.ref_name }}"
+          release-tag: "${{ inputs.tag || github.ref_name }}"
