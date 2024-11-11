@@ -1,14 +1,14 @@
 #? replace(sub = "\t", by = "  ")
 
 import markdown
-import strutils, os, times, terminal, re, sequtils
+import std/strutils, std/os, std/times, std/terminal, std/re, std/sequtils
 import nimLUA
-import tables, sets
-import asynchttpserver
-import asyncdispatch
+import std/tables, std/sets
+import std/asynchttpserver
+import std/asyncdispatch
 import ws
 import nimwatch/nimwatch
-
+import gitutils
 
 let parameters = commandLineParams()
 if parameters.len != 2:
@@ -469,11 +469,36 @@ proc build(act: FileAction = EmptyAction) =
 		discard L.pushstring(name.cstring)
 		L.settable(-3)
 
-		discard L.pushstring("last_modified")
-		# use same format as lua for dates
-		let ftime = getLastModificationTime(posts[i]).format("dd/MM/yy HH:mm:ss")
-		discard L.pushstring(ftime.cstring)
-		L.settable(-3)
+		# We provide 3 date related to file modification:
+		# modification time as provided by git (default)
+		# modification time as provided by the OS.
+		# creation time as provided by git
+		
+		block:
+			let blameInfo = gitBlame(posts[i])
+			
+			discard L.pushstring("last_modified")
+			if blameInfo.modificationCommits.len > 0:
+				let ftime = getGitModificationTime(blameInfo).format("dd/MM/yy HH:mm:ss")
+				discard L.pushstring(ftime.cstring)
+			else:
+				discard L.pushstring("".cstring)
+			L.settable(-3)
+
+			discard L.pushstring("created_at")
+			if blameInfo.modificationCommits.len > 0:
+				let ftime = getGitCreationTime(blameInfo).format("dd/MM/yy HH:mm:ss")
+				discard L.pushstring(ftime.cstring)
+			else:
+				discard L.pushstring("".cstring)
+			L.settable(-3)
+
+		block:
+			discard L.pushstring("last_modified_os")
+			# use same format as lua for dates
+			let ftime = getLastModificationTime(posts[i]).format("dd/MM/yy HH:mm:ss")
+			discard L.pushstring(ftime.cstring)
+			L.settable(-3)
 
 		discard L.pushstring("size")
 		let size: int = (getFileSize(posts[i])).int
