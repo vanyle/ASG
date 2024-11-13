@@ -1,6 +1,32 @@
 # Awesome Static Generator
 *⭐ Converts Markdown into a Website ⭐*
 
+## The concept
+
+Create websites like blogs, documentation or portfolio by writing [Lua](https://www.lua.org/) code!
+
+```md
+Last updated at *{{ os.date() }}*
+
+# Fibonacci
+{%
+	fiboList = {1, 1}
+    for i=2,10 do
+        table.insert(fiboList, fiboList[i] + fiboList[i-1])
+    end
+%}
+
+## List of fibonacci numbers
+<ul>
+{% for i, v in pairs({unpack(fiboList,3)}) do %}
+	<li>The {{ i+2 }}th fibonacci number is $ {{ v }} = {{ fiboList[i+1] }} + {{ fiboList[i]}} $.</li>
+{% end %}
+</ul>
+```
+
+You can mix markdown, lua and latex! ASG is the ideal playground to learn Lua or build your website.
+Get started using [a theme](./assets/themes/) or from scratch.
+
 ## Getting started
 
 Go to the [release page](https://github.com/vanyle/ASG/releases) and download the latest version for your OS.
@@ -46,7 +72,7 @@ Check out [how to use ASG with Github Pages to publish your website](./docs/gith
 
 There are many static site generators that can be used to write blogs, however, most lack at least some of the following features:
 
-- No dependencies (No Ruby, No Node js, nothing to install other than the executable)
+- No dependencies (No Ruby, No Node, No Lua installation, nothing to install other than the executable)
 - Turing-complete templates (templates can really do anything, like fetching data from the web or running other programs)
 - Templates are not based on a domain specific language (aka they use an executing well known language)
 - Reasonable build times (a.k.a not noticable for regular users)
@@ -65,11 +91,6 @@ the time between you saving your file and the browser refreshing to render the n
 is good enough for live preview.
 
 ASG might be slower is you put very complex tasks in LUA (or a sleep / network access).
-
-We use LuaJIT for execution, so make sure you have the Lua DLL somewhere nearby so that everything works.
-
-We might link it statically at some point in the future.
-
 
 ## Examples
 

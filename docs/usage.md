@@ -9,35 +9,37 @@ The static website will be generated inside `<output_directory>`
 ## Input directory structure
 
 - All markdown files get turned into webpages.
-- All HTML files get also turn to webpage but without markdown preprocessing
-- Simple URL scheme: 
+- All HTML files get also turned into webpage but without markdown preprocessing
+- URL scheme: 
 	- index.md -> /
 	- example.md -> /example.html
-	- posts/thing.md -> /post/thing.html
+	- posts/thing.md -> /posts/thing.html
 
-There is a special directory: the `posts` directory that stores posts if you want to build a blog.
+The `posts` directory is special, it stores posts if you want to build a blog.
 You can list all the posts using the `posts` variable in lua (check out the corresponding section)
 
 ## Non standard markdown features
 
-Insert latex using `$`. (dollar sign). Use 1 dollar sign for inline math and 2 dollar signs for blocks of math.
+Insert latex using `$` (dollar sign). Use 1 dollar sign for inline math and 2 dollar signs for blocks of math.
 
 ## Lua API basics
 
-You can put inline lua incode inside `{{` and `}}` to render custom stuff. The lua API is described below.
-To display the build date for example, you have write something like:
+You can put inline Lua code inside `{{` and `}}` to render the output of Lua.
+The Lua API is described below.
+To display the build date for example, you can write something like:
 
 ```md
 *Last updated: {{ os.date() }}*
 ```
 
-You have also access to several variables by default like the page variable and do stuff like this:
+You have also access to several variables by default like the page variable:
 
 ```md
 # Some page
 
 The file path of this page is {{ file.name }}
 It was last modified at {{ file.last_modified }}
+According to Git, it was created at {{ file.created_at }}
 It's total size is {{ file.size }}
 
 ```
@@ -49,7 +51,7 @@ provide. The `body` variable is automatically generated and is the main content 
 You can change the `title` variable to change the title or your post if you want. 
 
 
-Sometimes, you want to insert more complex code that does not generate data directly. To do this, you need to write:
+Sometimes, you want to insert more complex code that does not generate data directly:
 
 ```md
 {%
@@ -62,15 +64,14 @@ end
 ```
 
 The `{%` and `%}` tags do not generate Markdown or HTML directly but define variables and functions that can be used
-by the rest of the lua code.
+by the rest of the Lua code.
 
-You can also use them to define loops, if your block starts with `{% for`, then
-ASG will try to match your block with an `{% end %}` block and repeat the html inside:
+To define loops, use `{% for`.
+ASG will try to match your loop block with an `{% end %}` block and repeat the html inside:
 
 ```html
 
 {% fruits = {"Apple","Banana","Oranges"}  %}
-
 
 A list of fruits:
 <ul>
@@ -80,7 +81,7 @@ A list of fruits:
 </ul>
 ```
 
-This will get parsed into (more or less because performance):
+This will get parsed into:
 ```md
 {%
 fruits = {"Apple","Banana","Oranges"}
@@ -92,6 +93,7 @@ result = result .. "</ul>"
 %}
 {{ result }}
 ```
+
 Inside your loop, you cannot have `{% %}` brackets as those will close the loop.
 This also works with `if` and `while` constructs and behave as you would expect.
 
@@ -117,11 +119,10 @@ Posts can set the variables:
 
 Those might be used by templates to generate pages or to search for posts
 
-## Data
+## Data (not implemented yet)
 
 Data are similar to posts except they don't get rendered to the website.
-Data can be `.csv` or `.json` file.
-Data can also be `.lua` or `.html` files
+Data can any file type like `.csv`, `.json`, `.lua`, `.txt` or `.html`.
 
 Function of part of the Data API
 
@@ -131,6 +132,18 @@ Function of part of the Data API
 ## Standard library
 
 By default, we provide several lua functions to help you generate HTML.
+
+### Native functions
+*These functions are implemented in Nim code*
+
+- `include_asset(path: string)`: Read the content of a file in the `assets` folder (the one next to the asg executable) are return it.
+- `setvar(key: string, value: string)`: Set a variable like the current layout. This is used to configure build options.
+- `parse_html(s: string)`: Parse the HTML inside s and return a table with the headings and their content. Useful for building summaries.
+
+### Lua functions
+*These functions are implemented in `std.lua`*
+
+- `split(s: string, sep: string)`: Cut a string `s` using `sep` as the separator. This is the opposite of `join`.
 
 ## Configuration
 
