@@ -12,7 +12,9 @@ name: GitHub Pages
 # The blog is published when manually triggered or when you push to the main branch.
 on:
   push:
-    branches: ["main"]
+    branches: ["master"]
+  pull_request:
+    branches: ["master"]
   workflow_dispatch:
 
 permissions:
@@ -22,30 +24,28 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up ASG
-        run: curl -L https://github.com/vanyle/ASG/releases/download/0.0.1/asg-0.0.1-linux-amd64.tar.gz > asg.tar.gz && tar xzf asg.tar.gz
+        run: curl -L https://github.com/vanyle/ASG/releases/download/0.0.2/asg-0.0.2-linux-amd64.tar.gz > asg.tar.gz && tar xzf asg.tar.gz
 
       - name: Run ASG
         run: ./build/asg src output
 
       - name: Upload static files as artifact
-        id: deployment
         uses: actions/upload-pages-artifact@v3
         with:
           path: output/
 
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
 ```
