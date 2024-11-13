@@ -216,7 +216,6 @@ proc pushthread*(L: PState): cint {.ilua.}
 #
 #* get functions (Lua -> stack)
 #
-proc getglobal*(L: PState; variable: cstring) {.ilua.}
 proc gettable*(L: PState; idx: cint) {.ilua.}
 proc getfield*(L: PState; idx: cint; k: cstring) {.ilua.}
 proc rawget*(L: PState; idx: cint) {.ilua.}
@@ -226,6 +225,7 @@ proc createtable*(L: PState; narr: cint; nrec: cint) {.ilua.}
 proc newuserdata*(L: PState; sz: csize_t): pointer {.ilua.}
 proc getmetatable*(L: PState; idx: cint): cint {.ilua.}
 proc getuservalue*(L: PState; idx: cint) {.ilua.}
+proc getglobal*(L: PState; variable: cstring) = getfield(L, LUA_GLOBALSINDEX, variable)
 
 #
 #* set functions (stack -> Lua)

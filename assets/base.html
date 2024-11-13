@@ -38,26 +38,19 @@ is_math = string.find(body, "$$",1,true) or string.find(body, "\\(",1,true) or s
 </body>
 
 {% if is_code then %}
-		<script defer>{{ include_asset("highlight.min.js") }}</script>
+		<script>{{ include_asset("highlight.min.js") }}</script>
 		<style> {{ include_asset("highlight.min.css") }}</style>
 	{% end %}
 
 	{% if is_mermaid_diagram then %}
-		<script defer>{{ include_asset("mermaid.min.js") }}</script>
+		<script>{{ include_asset("mermaid.min.js") }}</script>
 	{% end %}
 
 	{% if is_math then %}
 		<script>{{ include_asset("katex.min.js") }}</script>
 		<script>{{ include_asset("katex-auto-render.min.js") }}</script>
 	<style>
-	@font-face{
-		font-family:KaTeX_AMS;
-		font-style:normal;
-		font-weight:400;
-		src:url(//fonts/KaTeX_AMS-Regular.woff) format("woff");
-	}
-
-{{ include_asset("katex.min.css") }}
+		{{ include_asset("katex.min.css") }}
 	</style>
 	{% end %}
 

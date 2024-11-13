@@ -21,7 +21,7 @@ setvar("layout",theme .. ".html")
 
 <script>
 	let posts = [
-	{% for i in pairs(posts) do %}
+	{% for i in ipairs(posts) do %}
 		{
 			title: `{{ posts[i].title }}`,
 			url: `{{ string.gsub(posts[i].url,"\\","/") }}`,

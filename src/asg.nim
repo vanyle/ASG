@@ -1,14 +1,15 @@
 #? replace(sub = "\t", by = "  ")
 
 import markdown
-import std/strutils, std/os, std/times, std/terminal, std/re, std/sequtils
+import std/strutils, std/os, std/times, std/terminal, std/re, std/sequtils, std/algorithm
 import nimLUA
-import std/tables, std/sets
+import std/tables, std/sets, std/strtabs
 import std/asynchttpserver
 import std/asyncdispatch
 import ws
 import nimwatch/nimwatch
 import gitutils
+import pkg/htmlparser, xmltree
 
 let parameters = commandLineParams()
 if parameters.len != 2:
@@ -60,6 +61,43 @@ proc include_asset(asset_name: string): string =
 		return readFile(path)
 	else:
 		return ""
+
+type HTMLHeadingResult = tuple[rank: int, title: string, id: string]
+
+proc parseHTMLHeadings(html_source: string): seq[HTMLHeadingResult] =
+	# result: seq[HTMLHeadingResult] = @[]
+	var parsed = parseHTML(html_source)
+	var res: seq[HTMLHeadingResult]
+	var toProcess = @[parsed]
+	while toProcess.len > 0:
+		let node = toProcess.pop()
+		case node.kind
+		of xnElement:
+			let attributes = node.attrs
+			let nodeId: string = if attributes.hasKey("id"): attributes["id"] else: ""
+
+			if node.tag == "h1":
+				res.add((rank: 1, title: node.innerText, id: nodeId))
+			elif node.tag == "h2":
+				res.add((rank: 2, title: node.innerText, id: nodeId))
+			elif node.tag == "h3":
+				res.add((rank: 3, title: node.innerText, id: nodeId))
+			elif node.tag == "h4":
+				res.add((rank: 4, title: node.innerText, id: nodeId))
+			elif node.tag == "h5":
+				res.add((rank: 5, title: node.innerText, id: nodeId))
+			elif node.tag == "h6":
+				res.add((rank: 6, title: node.innerText, id: nodeId))
+			else:
+				for child in node:
+					toProcess.add(child)
+		else:
+			discard
+
+	return res.reversed()
+
+	
+
 
 proc displayError(error_msg: string,error_file: string,error_code:string = "") =
 	if "coloredErrors" in globalVarTable and globalVarTable["coloredErrors"] == "true":
@@ -388,6 +426,8 @@ proc build(act: FileAction = EmptyAction) =
 	# Setup lua api
 	L.bindFunction(setvar)
 	L.bindFunction(include_asset)
+	L.bindFunction:
+		parseHTMLHeadings -> "parse_html"
 
 	let standard_library_path = joinPath(getAppDir(), "assets/std.lua")
 	if fileExists(standard_library_path):

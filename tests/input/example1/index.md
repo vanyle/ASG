@@ -22,7 +22,7 @@ Build using {{ jit.version }}
 
 ## Latest posts
 
-{% for i in pairs(posts) do %}
+{% for i in ipairs(posts) do %}
 <a href="{{ posts[i].url }}">
 <div class='card'>
 		<h3 class='title'>
