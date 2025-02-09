@@ -9,5 +9,4 @@ bin = @["asg"]
 
 requires "markdown"
 requires "ws"
-requires "chronos"
 requires "htmlparser"
