@@ -484,6 +484,10 @@ proc build(act: FileAction = EmptyAction) =
 		discard L.pushstring(info.title.cstring)
 		L.settable(-3)
 
+		discard L.pushstring("body")
+		discard L.pushstring(info.parsedBody.cstring)
+		L.settable(-3)
+
 		discard L.pushstring("tags")
 		discard L.pushstring(info.tags.join(",").cstring)
 		L.settable(-3)
@@ -634,23 +638,34 @@ proc build(act: FileAction = EmptyAction) =
 
 var port = 8080
 var connections {.threadvar.}: seq[WebSocket]
-var monitor = newWatcher(input_dir)
+var reloadChannel: Channel[string]
+reloadChannel.open()
 
 proc rebuild(act: FileAction) {.gcsafe.} =
 	{.gcsafe.}:
 		build(act)
-		let profiler = "profiler" in globalVarTable and globalVarTable["profiler"] == "true"
-
-		if profiler:
-			echo connections.len, " clients notified of change."
-		for i in 0..<connections.len:
-			discard connections[i].send "reload"
+		# let profiler = "profiler" in globalVarTable and globalVarTable["profiler"] == "true"
+		reloadChannel.send("reload")
 
 # Server listening function
 proc serverHandler() {.async.} =
 	var server = newAsyncHttpServer()
 	let outd = output_dir
 	let profiler = "profiler" in globalVarTable and globalVarTable["profiler"] == "true"
+
+	proc livereloadChannelReceiver() {.async gcsafe.} =
+		while true:
+			let msgCount = reloadChannel.peek()
+			if msgCount == -1:
+				break
+			if msgCount == 0:
+				await sleepAsync(100)
+				continue
+			let reloadRequest = reloadChannel.recv()
+			if profiler:
+				echo connections.len," clients notified of change"
+			for ws in connections:
+				asyncCheck ws.send("reload")
 
 	proc cb(req: Request) {.async gcsafe.}  =
 		# Handle websockets
@@ -660,9 +675,11 @@ proc serverHandler() {.async.} =
 			var ws: WebSocket = nil
 			try:
 				ws = await newWebSocket(req)
-				connections.add ws
+				{.gcsafe.}:
+					connections.add ws
 				while ws.readyState == Open:
 					discard await ws.receiveStrPacket()
+
 			except WebSocketClosedError:
 				discard
 			except WebSocketProtocolMismatchError:
@@ -672,8 +689,9 @@ proc serverHandler() {.async.} =
 			if ws != nil:
 				if profiler:
 					echo "Websocket connection closed!"
+				{.gcsafe.}:
+					connections.delete(connections.find(ws))
 				ws.close()
-				connections.delete(connections.find(ws))
 			return
 
 		# Handle serving output directory
@@ -696,6 +714,10 @@ proc serverHandler() {.async.} =
 	server.listen(Port(port))
 	echo "Listening at: http://localhost:",port
 
+	let livereload = "livereload" in globalVarTable and globalVarTable["livereload"] == "true"
+	if livereload:
+		asyncCheck liveReloadChannelReceiver()
+
 	while true:
 		if server.shouldAcceptRequest():
 			await server.acceptRequest(cb)
@@ -706,8 +728,7 @@ proc serverHandler() {.async.} =
 proc asyncMain() {.async.} =
 	# Live reload and server stuff
 	if "livereload" in globalVarTable and globalVarTable["livereload"] == "true":
-		monitor.register(rebuild)
-		asyncCheck monitor.watch()
+		var monitor = newWatcher(input_dir, rebuild)
 		echo "Live reload enabled."
 	
 	if "port" in globalVarTable:

@@ -1,4 +1,3 @@
-
 import posix
 import types
 import asyncdispatch
@@ -29,6 +28,42 @@ let BufLen* = 1024 * (EventSize + 16)
 proc inotify_init*(): FD {.importinotify.}
 proc inotify_add_watch*(fd: FD, target: cstring, events: cint): WD {.importinotify.}
 proc inotify_rm_watch*(fd: FD, wd: WD) {.importinotify.}
+
+proc readSync*(watcher: Watcher): seq[FileAction] =
+  ## Block the thread until a change occurs.
+  var readBuffer = newString(BufLen)
+  let length = read(watcher.fd, addr readBuffer[0], BufLen)
+  if length < 0:
+    return @[]
+  var actions = newSeq[FileAction]()
+  
+  var i = 0
+  while i < length:
+    var action: FileAction
+    let event = cast[ptr InotifyEvent](addr readBuffer[i])
+    if (event[].mask and IN_MODIFY) != 0:
+      action.kind = actionModify
+    elif (event[].mask and IN_MOVED_FROM) != 0:
+      action.kind = actionMoveFrom
+    elif (event[].mask and IN_MOVED_TO) != 0:
+      action.kind = actionMoveTo
+    elif (event[].mask and IN_DELETE) != 0:
+      action.kind = actionDelete
+    elif (event[].mask and IN_CREATE) != 0:
+      action.kind = actionCreate
+    else:
+      i += EventSize + event[].len.int
+      continue
+
+    var buf = alloc0(event.len)
+    copyMem(buf, event[].name.addr, event.len)
+    action.filename = $cast[cstring](buf)
+    dealloc(buf)
+    actions.add(action)
+    i += EventSize + event[].len.int
+
+  return actions
+
 
 proc readEvents*(fd: FD): Future[seq[FileAction]] =
   var retFuture = newFuture[seq[FileAction]]("inotify.readEvents")
@@ -77,8 +112,7 @@ proc readEvents*(fd: FD): Future[seq[FileAction]] =
 proc init*(watcher: Watcher) =
   let fd = inotify_init()
   watcher.fd = fd
-  var targetC = watcher.target
-  watcher.wd = inotify_add_watch(fd, targetC.cstring, DefaultEvents)
+  watcher.wd = inotify_add_watch(fd, watcher.target.cstring, DefaultEvents)
   register(fd)
 
 proc read*(watcher: Watcher): Future[seq[FileAction]] =

@@ -1,0 +1,222 @@
+{%
+    -- A modern theme, with a blue color
+
+    setvar("layout","base.html")
+    language = language or "en"
+    body = body or ""
+    description = description or "An ASG website"
+    title = title or "ASG"
+    head = head or ""
+    footer = footer or [[
+        <p> © ]] .. os.date("%Y") .. [[ - Antoine Delègue - Powered by <a href="https://github.com/vanyle/asg">ASG</a></p>
+    ]]
+
+%}
+
+<style>
+@import url('https://fonts.cdnfonts.com/css/oswald-4');
+@keyframes wiggle { 
+   0% { transform: rotate(0deg); }
+   25% { transform: rotate(2deg); }
+   75% { transform: rotate(-2deg); }
+  100% { transform: rotate(0deg); }
+}
+body,html{
+    margin:0;
+    height:100%;
+}
+*{
+    box-sizing: border-box;
+}
+body{
+    display: flex;
+    flex-direction: column;
+    background-color: #36f;
+}
+h1,h2,h3,h4,h5,h6{
+    margin:0;
+    font-family: "Oswald", sans-serif;
+}
+a{
+    text-decoration: inherit;
+    color: inherit;
+}
+h1{
+    font-size: 48px;
+}
+.posts p, .posts ul, .posts li{
+    font-size: 24px;
+    font-family: "Source Serif 4", "Times New Roman", Georgia, serif;
+    margin:0;
+}
+.posts img,.posts iframe{
+    margin: auto;
+    display: block;
+    padding: 16px;
+}
+.posts h2{
+    font-size: 32px;
+    padding-top: 16px;
+}
+.card{
+    box-shadow: 0 0 16px -10px light-dark(#000, #fff);
+    margin-bottom: 16px;
+    padding: 16px 24px;
+    background-color: white;
+    font-family: sans-serif;
+    font-size: 16px;
+    border-radius: 8px;
+    transition: 300ms;
+}
+.card .time{
+    opacity: 0.5;
+}
+.card .title{
+    font-size: 24px;
+    font-family: "Oswald", sans-serif;
+}
+.card > p{
+    font-size: 16px;
+    padding: 16px 0px;
+}
+section{
+    display: flex;
+    justify-content: center;
+    background-color: #36f;
+    flex-grow: 1;
+    position: relative;
+}
+.posts:has(> .card){
+    display: flex;
+    flex-direction: column;
+    row-gap: 16px;
+    padding: 48px 16px 0px 16px;
+    background-color: transparent;
+    box-shadow: none;
+}
+.posts{
+    height:100%;
+    width: 50%;
+    z-index: 1;
+    margin-top:32px;
+    padding: 32px 32px 0px 32px;
+    background-color: white;
+    border-top-left-radius: 16px;
+    border-top-right-radius: 16px;
+    box-shadow: 0 0 16px -10px light-dark(#000, #fff);
+    font-family: sans-serif;
+}
+header{
+    background-color: #36f;
+    color: white;
+    width: 100%;
+    overflow-x: clip;
+}
+header h1{
+    font-size: 48px;
+    font-family: "Oswald", sans-serif;
+    margin: 0px;
+}
+.description{
+    font-size: 24px;
+    opacity: 0.8;
+}
+header > .nav-wrapper{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    row-gap: 16px;
+}
+nav{
+    padding: 16px 32px;
+}
+nav > a{
+    font-size: 32px;
+    margin: 0px 8px;
+    padding: 8px;
+    font-family: "Oswald", sans-serif;
+}
+nav > a:hover{
+    text-decoration: underline;
+}
+.header-box{
+    top: 0px;
+    left: 0px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: start;
+    position: fixed;
+    z-index: 1;
+    width: max(50%, 600px);
+    height: 300px;
+    padding: 16px 16px 64px 32px;
+    background-color:white;
+    color:black;
+    clip-path: polygon(0 0, 0% 100%, 100% 0);
+}
+footer{
+	background-color: black;
+    color:white;
+    position: relative;
+	padding: 16px 32px;
+    font-size: 24px;
+    z-index: 3;
+    font-family: "Oswald", sans-serif;
+}
+footer p{
+    margin: 0;
+}
+.hidden-box{
+    visibility: hidden;
+}
+@media (max-width: 840px){
+    header{
+        background-color: white;
+        color: black;
+        position: relative;
+    }
+    nav{
+        z-index: 3;
+        background-color: white;
+    }
+    .posts{
+        width: 95%;
+        padding: 16px 16px 0px 16px;
+    }
+    .card{
+        padding: 16px 16px;
+    }
+    .header-box{
+        position: absolute;
+    }
+} 
+
+</style>
+
+<header>
+    <div class="header-box">
+        <h1>{{ title }}</h1>
+        <div class="description">{{ description }}</div>    
+    </div>
+    <div class="nav-wrapper">
+        <div class="hidden-box">
+            <h1>{{ title }}</h1>
+            <div class="description">{{ description }}</div>    
+        </div>
+        <nav>
+            <a href="/">Home</a>
+            <a href="/about.html">About</a>
+            <a href="/search.html">Search</a>
+        </nav>
+    </div>
+</header>
+<section>
+<div class="posts">
+{{ body }}
+</div>
+</section>
+<footer>
+    {{ footer }}
+</footer>

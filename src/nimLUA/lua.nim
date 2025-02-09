@@ -10,7 +10,11 @@ const
 when not defined(nojit):
   static:
     echo "Linking using Lua JIT. Use -d:nojit to disable this."
-  {.passL: "-lluajit-5.1 -lm -static".}
+  when defined(MACOSX):
+    # Fully static linking is not possible on macOS.
+    {.passL: "-lluajit-5.1".}
+  else:
+    {.passL: "-lluajit-5.1 -lm -static".}
 elif not defined(nostatic):
   static:
     echo "Linking using Lua. Use -d:nostatic and -d:nojit for dynamic linking."
