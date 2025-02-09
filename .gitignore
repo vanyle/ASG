@@ -4,3 +4,4 @@
 tests/output
 build/
 !build/.gitkeep
+output

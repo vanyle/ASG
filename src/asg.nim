@@ -480,7 +480,7 @@ proc build(act: FileAction = EmptyAction) =
 		
 		var generated_file = changeFileExt(posts[i], ".html")
 		let url = joinPath(".",relativePath(generated_file, input_dir))
-		L.pushinteger(i)
+		L.pushinteger(i + 1) # index starts at 1 in lua.
 		
 		# Create table as the key: integer -> table
 		# 9 entry in table
