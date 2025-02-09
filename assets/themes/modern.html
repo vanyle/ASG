@@ -98,8 +98,8 @@ section{
     height:100%;
     width: 50%;
     z-index: 1;
-    margin-top:32px;
     padding: 32px 32px 0px 32px;
+    margin: 32px 16px 0px 16px;
     background-color: white;
     border-top-left-radius: 16px;
     border-top-right-radius: 16px;
@@ -177,19 +177,30 @@ footer p{
         color: black;
         position: relative;
     }
+    header .description{
+        width: min(100%, 90vw);
+    }
     nav{
         z-index: 3;
         background-color: white;
     }
     .posts{
         width: 95%;
-        padding: 16px 16px 0px 16px;
+        padding: 16px;
+    }
+    .posts:has(> .card){
+        padding: 16px 0px 0px 0px;
     }
     .card{
         padding: 16px 16px;
     }
     .header-box{
         position: absolute;
+    }
+    .katex{
+        font-size: 16px;
+        max-width: 100%;
+        overflow-x: auto;
     }
 } 
 
