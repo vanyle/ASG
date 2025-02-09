@@ -12,14 +12,20 @@ style = style .. [[
     html,body{
         padding:0;
         margin:0;
+        height:100%;
         font-family: Helvetica;
         background-color: #ddd;
+    }
+    body{
+        display: flex;
+        flex-direction: column;
     }
     code{
         font-family: monospace;
         background-color:#eee;
     }
     #page{
+        flex-grow: 1;
         display: flex;
         justify-content: center;
     }

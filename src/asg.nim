@@ -74,7 +74,14 @@ proc parseHTMLHeadings(html_source: string): seq[HTMLHeadingResult] =
 		case node.kind
 		of xnElement:
 			let attributes = node.attrs
-			let nodeId: string = if attributes.hasKey("id"): attributes["id"] else: ""
+			if attributes == nil:
+				continue
+			let nodeId: string = if attributes.hasKey("id"):
+					attributes["id"]
+				else:
+					""
+			if nodeId == "":
+				continue
 
 			if node.tag == "h1":
 				res.add((rank: 1, title: node.innerText, id: nodeId))

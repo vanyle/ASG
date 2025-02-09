@@ -27,6 +27,10 @@ Last updated at *{{ os.date() }}*
 You can mix markdown, lua and latex! ASG is the ideal playground to learn Lua or build your website.
 Get started using [a theme](./assets/themes/) or from scratch.
 
+The modern theme looks like this:
+
+![modern theme](./docs/modern_theme.png)
+
 ## Getting started
 
 Go to the [release page](https://github.com/vanyle/ASG/releases) and download the latest version for your OS.
