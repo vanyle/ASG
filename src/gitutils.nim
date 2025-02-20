@@ -43,10 +43,15 @@ proc gitBlame*(filename: string): BlameInfo =
         return BlameInfo()
 
 proc getGitModificationTime*(bi: BlameInfo): times.Time =
+    if bi.modificationCommits.len == 0:
+        # If the file is not in Git, it is new.
+        return times.toTime(times.now())
     let dateString = bi.modificationCommits[0].date
     # format: Fri Nov 1 14:07:05 2024 +0100
     return times.parseTime(dateString, "ddd MMM d HH:mm:ss yyyy ZZZ", times.utc())
 
 proc getGitCreationTime*(bi: BlameInfo): times.Time =
+    if bi.modificationCommits.len == 0:
+        return times.toTime(times.now())
     let dateString = bi.modificationCommits[^1].date
     return times.parseTime(dateString, "ddd MMM d HH:mm:ss yyyy ZZZ", times.utc())
