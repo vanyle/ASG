@@ -1,8 +1,9 @@
 import nimLUA
-import std/[tables, sets, strtabs, os, strutils, times, sequtils, algorithm, terminal, re]
+import std/[tables, sets, strtabs, os, strutils, times, sequtils, algorithm, terminal]
 import pkg/htmlparser, xmltree
 import markdown
 import asgtypes
+import tinyre
 
 var c* = initGfmConfig()
 var L*: PState = nil.PState
@@ -333,7 +334,7 @@ proc compileFile*(in_path: string, out_path: string, base_input_dir: string, rec
     # Remove html tags.
     # Note that html tags cannot be parsed with a regex.
     # This is only for word count, so it's fine, doesn't matter if we are wrong for weird edge cases.
-    var stripped_content = html.replace(re"<[^>]*>")
+    var stripped_content = tinyre.replace(html, re"<[^>]*>")
     var word_count = stripped_content.split(" ").len
 
     var lines = stripped_content.split("\n")

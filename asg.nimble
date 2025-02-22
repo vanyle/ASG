@@ -10,3 +10,4 @@ bin = @["asg"]
 requires "markdown"
 requires "ws"
 requires "htmlparser"
+requires "tinyre"

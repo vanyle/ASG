@@ -29,10 +29,9 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       - run: sudo apt-get install -y libluajit-5.1-dev
-      - run: sudo apt-get install libpcre3-dev
       - run: nimble install --depsOnly
 
-      - run: nimble build -d:release -d:strip --opt:size --passL:-lpcre
+      - run: nimble build -d:release -d:strip --opt:size
       - run: cp -r ./assets ./build
       - run: tar cvfz asg-${{ inputs.tag || github.ref_name }}-linux-amd64.tar.gz build/*
 
