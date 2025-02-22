@@ -1,5 +1,11 @@
-# Awesome Static Generator
-*⭐ Converts Markdown into a Website ⭐*
+<div align="center">
+    <h1>Awesome Static Generator</h1>
+    <em>⭐ Converts Markdown into a Website ⭐</em>
+    <div>
+    <img alt="badge release asg" src="https://github.com/vanyle/asg/actions/workflows/release.yml/badge.svg"/>
+    <img alt="badge test asg" src="https://github.com/vanyle/asg/actions/workflows/test.yml/badge.svg"/>
+    </div>
+</div>
 
 ## The concept
 
@@ -36,8 +42,9 @@ The modern theme looks like this:
 Go to the [release page](https://github.com/vanyle/ASG/releases) and download the latest version for your OS.
 Unzip the file where you want and add the location to your path.
 
+ASG supports Windows, Linux and MacOS, but we only generate binaries for Windows and Linux. MacOS binaries are available on request.
 
-On linux, using bash, you can do:
+On Linux, using bash, you can do:
 ```bash
 cd ~
 curl -L https://github.com/vanyle/ASG/releases/download/0.0.1/asg-0.0.1-linux-amd64.tar.gz > asg.tar.gz && tar xzf asg.tar.gz

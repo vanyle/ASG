@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - tested
+      - master
 
 jobs:
   compile:
@@ -25,7 +25,9 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       - run: sudo apt-get install -y libluajit-5.1-dev
+      - run: sudo apt-get install libpcre3-dev
       - run: nimble install --depsOnly
 
-      - run: nimble build
+      - run: nimble build -d:release -d:strip --opt:size --passL:-lpcre
+      - run: cp -r ./assets ./build
       - run: nimble test

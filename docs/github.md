@@ -33,8 +33,11 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Install dependencies
+        run: sudo apt-get install libpcre3
+
       - name: Set up ASG
-        run: curl -L https://github.com/vanyle/ASG/releases/download/0.0.2/asg-0.0.2-linux-amd64.tar.gz > asg.tar.gz && tar xzf asg.tar.gz
+        run: curl -L https://github.com/vanyle/ASG/releases/download/0.0.5/asg-0.0.5-linux-amd64.tar.gz > asg.tar.gz && tar xzf asg.tar.gz
 
       - name: Run ASG
         run: ./build/asg src output

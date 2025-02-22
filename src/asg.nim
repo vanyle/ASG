@@ -1,4 +1,4 @@
-import std/[tables, asynchttpserver, asyncdispatch, strutils, os, times]
+import std/[tables, asynchttpserver, asyncdispatch, strutils, sequtils, os, times]
 import nimLUA
 import ws
 import nimwatch/nimwatch
@@ -20,12 +20,25 @@ proc shouldFileNotBeCompiled(basePath: string): bool =
         return true
     return false
 
+proc read_data*(filename: string): string =
+    let path = joinPath(input_dir, "data", filename)
+    if fileExists(path):
+        return readFile(path)
+    return ""
+
+proc read_csv*(filename: string): seq[seq[string]] =
+    let content = read_data(filename)
+    if content == "":
+        return @[]
+    return content.splitLines.mapIt(it.split(','))
+
 let EmptyAction = FileAction(filename: "", kind: actionCreate)
 proc build(act: FileAction = EmptyAction) =
     L = newNimLua()
     # Setup lua api
     L.bindFunction(setvar)
     L.bindFunction(include_asset)
+    L.bindFunction(read_data)
     L.bindFunction:
         parseHTMLHeadings -> "parse_html"
 
@@ -62,8 +75,7 @@ proc build(act: FileAction = EmptyAction) =
     # Start by building the posts to generate the post list.
     if act.filename == "" or forceNoIncremental:
         for file in walkDirRec(input_dir):
-            let relative = relativePath(file, input_dir, '/')
-
+            let relative = relativePath(file, input_dir, '/').replace("\\","/")
             if shouldFileNotBeCompiled(relative):
                 continue
 

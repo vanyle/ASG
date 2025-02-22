@@ -3,12 +3,17 @@
 -- The base only provides basics: latex rendering, mermaid and hot reload.
 setvar("layout","")
 
-
 language = language or "en"
 body = body or ""
 description = description or "An ASG website"
 title = title or "ASG"
 head = head or ""
+heads = heads or {}
+
+heads_data = {}
+for k, v in pairs(heads) do
+	table.insert(heads_data, v)
+end
 
 endscript = endscript or ""
 author = author or "vanyle"
@@ -29,6 +34,7 @@ is_math = string.find(body, "$$",1,true) or string.find(body, "\\(",1,true) or s
 	<meta name="description" content="{{ description }}">
 	<meta name="author" content="{{ author }}">
 	<meta name="keywords" content="{{ keywords }}">
+	{{ table.concat(heads_data, "\n") }}
 	<title>{{ title }}</title>
 	{{ style }}
 	{{ head }}

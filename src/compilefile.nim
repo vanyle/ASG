@@ -61,9 +61,6 @@ proc parseHTMLHeadings*(html_source: string): seq[HTMLHeadingResult] =
 
     return res.reversed()
 
-    
-
-
 proc displayError*(error_msg: string,error_file: string,error_code:string = "") =
     if "coloredErrors" in globalVarTable and globalVarTable["coloredErrors"] == "true":
         styledEcho fgRed, "Compilation Error:"
