@@ -1,4 +1,4 @@
-import osproc, strutils
+import osproc, strutils, os
 from times import nil
 
 type Commit = object
@@ -10,9 +10,15 @@ type Commit = object
 type BlameInfo = object
     modificationCommits*: seq[Commit] # most recent first, oldest last
 
-proc gitBlame*(filename: string): BlameInfo = 
+proc gitBlame*(path: string): BlameInfo = 
     try:
-        let output = execProcess("git",args=["log","--follow",filename], options={poUsePath})
+        if not fileExists(path):
+            return BlameInfo(modificationCommits: @[])
+
+        let parentFolder = parentDir(path)
+        let filename =  extractFilename(path)
+
+        let output = execProcess("git", args=["log","--follow",filename], workingDir=parentFolder, options={poUsePath})
         let lines = output.splitLines()
 
         var blameInfo: BlameInfo
@@ -48,10 +54,16 @@ proc getGitModificationTime*(bi: BlameInfo): times.Time =
         return times.toTime(times.now())
     let dateString = bi.modificationCommits[0].date
     # format: Fri Nov 1 14:07:05 2024 +0100
-    return times.parseTime(dateString, "ddd MMM d HH:mm:ss yyyy ZZZ", times.utc())
+    try:
+        return times.parseTime(dateString, "ddd MMM d HH:mm:ss yyyy ZZZ", times.utc())
+    except times.TimeParseError:
+        return times.toTime(times.now())
 
 proc getGitCreationTime*(bi: BlameInfo): times.Time =
     if bi.modificationCommits.len == 0:
         return times.toTime(times.now())
     let dateString = bi.modificationCommits[^1].date
-    return times.parseTime(dateString, "ddd MMM d HH:mm:ss yyyy ZZZ", times.utc())
+    try:
+        return times.parseTime(dateString, "ddd MMM d HH:mm:ss yyyy ZZZ", times.utc())
+    except times.TimeParseError:
+        return times.toTime(times.now())

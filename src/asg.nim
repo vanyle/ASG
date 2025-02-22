@@ -6,14 +6,8 @@ import asgtypes
 import compilefile
 import parseposts
 
-let parameters = commandLineParams()
-if parameters.len != 2:
-    echo "Usage: asg <input_directory> <output_directory>"
-    echo "Read the README.md for more info!"
-    quit()
-
-let input_dir = parameters[0]
-let output_dir = parameters[1]
+var input_dir = ""
+var output_dir = ""
 
 proc shouldFileNotBeCompiled(basePath: string): bool = 
     if basePath.startswith("data/") or basePath.startswith("/data/"):
@@ -32,7 +26,8 @@ proc read_csv*(filename: string): seq[seq[string]] =
         return @[]
     return content.splitLines.mapIt(it.split(','))
 
-let EmptyAction = FileAction(filename: "", kind: actionCreate)
+const EmptyAction = FileAction(filename: "", kind: actionCreate)
+
 proc build(act: FileAction = EmptyAction) =
     L = newNimLua()
     # Setup lua api
@@ -51,10 +46,15 @@ proc build(act: FileAction = EmptyAction) =
     let start_of_build = now()
 
     # Load config
-    let execution_result = L.doFile(joinPath(input_dir,"config.lua"))
-    if execution_result != 0:
-        let err_msg = L.tostring(-1.cint)
-        displayError(err_msg, joinPath(input_dir,"config.lua"))
+    let configPath = joinPath(input_dir, "config.lua")
+    if fileExists(configPath):
+        let execution_result = L.doFile(joinPath(input_dir,"config.lua"))
+        if execution_result != 0:
+            let err_msg = L.tostring(-1.cint)
+            displayError(err_msg, joinPath(input_dir,"config.lua"))
+    else:
+        echo "Config file not found at ", configPath
+        return
 
     let forceNoIncremental = "incrementalBuild" notin globalVarTable or globalVarTable["incrementalBuild"] == "false"
 
@@ -147,17 +147,12 @@ proc build(act: FileAction = EmptyAction) =
     if "profiler" in globalVarTable and globalVarTable["profiler"] == "true":
         echo "--> Total build time: ",(now() - start_of_build)
 
-
 var port = 8080
 var connections {.threadvar.}: seq[WebSocket]
-var reloadChannel: Channel[string]
-reloadChannel.open()
+var reloadChannel: Channel[FileAction]
 
-proc rebuild(act: FileAction) {.gcsafe.} =
-    {.gcsafe.}:
-        build(act)
-        # let profiler = "profiler" in globalVarTable and globalVarTable["profiler"] == "true"
-        reloadChannel.send("reload")
+proc requestRebuild(act: FileAction) {.gcsafe.} =
+    reloadChannel.send(act)
 
 # Server listening function
 proc serverHandler() {.async.} =
@@ -165,21 +160,42 @@ proc serverHandler() {.async.} =
     let outd = output_dir
     let profiler = "profiler" in globalVarTable and globalVarTable["profiler"] == "true"
 
-    proc livereloadChannelReceiver() {.async gcsafe.} =
+    proc livereloadChannelReceiver() {.async.} =
+        var nextReloadRequest: FileAction = EmptyAction
+
         while true:
-            let msgCount = reloadChannel.peek()
-            if msgCount == -1:
-                break
-            if msgCount == 0:
-                await sleepAsync(100)
-                continue
-            let reloadRequest = reloadChannel.recv()
+            var reloadRequest: FileAction
+
+            if nextReloadRequest != EmptyAction:
+                reloadRequest = nextReloadRequest
+                nextReloadRequest = EmptyAction
+            else:
+                let msgCount = reloadChannel.peek()
+                if msgCount == -1:
+                    break
+                if msgCount == 0:
+                    await sleepAsync(100)
+                    continue
+                let reloadRequest = reloadChannel.recv()
+                if msgCount > 1:
+                    # Deduplicate reload requests
+                    nextReloadRequest = reloadChannel.recv()
+                    var leftToRead = msgCount - 2
+                    while nextReloadRequest.filename == reloadRequest.filename and leftToRead > 0:
+                        nextReloadRequest = reloadChannel.recv()
+                        dec leftToRead
+                    if leftToRead == 0 and nextReloadRequest.filename == reloadRequest.filename:
+                        nextReloadRequest = EmptyAction
+
+            build(reloadRequest)
+
             if profiler:
                 echo connections.len," clients notified of change"
             for ws in connections:
                 asyncCheck ws.send("reload")
+            await sleepAsync(500)
 
-    proc cb(req: Request) {.async gcsafe.}  =
+    proc cb(req: Request) {.async.}  =
         # Handle websockets
         if req.url.path == "/ws":
             if profiler:
@@ -187,11 +203,9 @@ proc serverHandler() {.async.} =
             var ws: WebSocket = nil
             try:
                 ws = await newWebSocket(req)
-                {.gcsafe.}:
-                    connections.add ws
+                connections.add ws
                 while ws.readyState == Open:
                     discard await ws.receiveStrPacket()
-
             except WebSocketClosedError:
                 discard
             except WebSocketProtocolMismatchError:
@@ -201,9 +215,11 @@ proc serverHandler() {.async.} =
             if ws != nil:
                 if profiler:
                     echo "Websocket connection closed!"
-                {.gcsafe.}:
-                    connections.delete(connections.find(ws))
-                ws.close()
+                connections.delete(connections.find(ws))
+                try:
+                    ws.close()
+                except:
+                    discard
             return
 
         # Handle serving output directory
@@ -240,7 +256,7 @@ proc serverHandler() {.async.} =
 proc asyncMain() {.async.} =
     # Live reload and server stuff
     if "livereload" in globalVarTable and globalVarTable["livereload"] == "true":
-        var monitor = newWatcher(input_dir, rebuild)
+        var monitor = newWatcher(input_dir, requestRebuild)
         echo "Live reload enabled."
     
     if "port" in globalVarTable:
@@ -248,6 +264,17 @@ proc asyncMain() {.async.} =
         await serverHandler()
 
 proc main() =
+    let parameters = commandLineParams()
+    if parameters.len != 2:
+        echo "Usage: asg <input_directory> <output_directory>"
+        echo "Read the README.md for more info!"
+        quit()
+
+    input_dir = parameters[0]
+    output_dir = parameters[1]
+
+    reloadChannel.open()
+
     build()
     waitFor asyncMain()
 

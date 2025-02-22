@@ -10,27 +10,27 @@ elif defined(macosx):
 else:
     import nonotify
 
-var watcherPool: seq[Watcher] = @[]
-var threads: seq[Thread[int]] = @[]
 var watcherPoolLock: Lock
+var watcherPool {.guard: watcherPoolLock.}: seq[Watcher] = @[]
+var threads: seq[Thread[int]] = @[]
 initLock(watcherPoolLock)
 
-proc watchDirThread(watcherId: int) =
+proc watchDirThread(watcherId: int) {.gcsafe thread.} =
     while true:
         var watcher: Watcher = nil
         {.gcsafe.}:
             withLock watcherPoolLock:
                 watcher = watcherPool[watcherId]
-            if watcher == nil:
-                break
-            if watcher.stopChan == nil:
-                break
-            var shouldStop = watcher.stopChan[].tryRecv()
-            if shouldStop.dataAvailable:
-                break
-            var events = watcher.readSync()
-            if events.len > 0:
-                watcher.callback(events[0])
+        if watcher == nil:
+            break
+        if watcher.stopChan == nil:
+            break
+        var shouldStop = watcher.stopChan[].tryRecv()
+        if shouldStop.dataAvailable:
+            break
+        var events = watcher.readSync()
+        if events.len > 0:
+            watcher.callback(events[0])
 
     {.gcsafe.}:
         withLock watcherPoolLock:
@@ -42,7 +42,8 @@ proc watchDirThread(watcherId: int) =
 proc forceStop*(watcher: Watcher) =
     if watcher.stopChan != nil:
         watcher.stopChan[].send(true)
-    watcherPool[watcher.poolIdx] = nil
+    withLock watcherPoolLock:
+        watcherPool[watcher.poolIdx] = nil
 
 proc newWatcher*(path: string, cb: proc (
         action: FileAction) {.gcsafe.}): Watcher =
@@ -57,16 +58,17 @@ proc newWatcher*(path: string, cb: proc (
     result.stopChan[].open()
 
     var idx = -1
-    for i,w in watcherPool.mpairs():
-        if w == nil:
-            watcherPool[i] = result
-            idx = i
-            break
-    if idx == -1:
-        idx = watcherPool.len
-        watcherPool.add(result)
+    withLock watcherPoolLock:
+        for i,w in watcherPool.mpairs():
+            if w == nil:
+                watcherPool[i] = result
+                idx = i
+                break
+        if idx == -1:
+            idx = watcherPool.len
+            watcherPool.add(result)
 
     result.poolIdx = idx
 
     threads.add(Thread[int]())
-    createThread(threads[threads.len - 1],watchDirThread, idx)
+    createThread(threads[threads.len - 1], watchDirThread, idx)

@@ -1,5 +1,4 @@
 
-import threadpool
 import types
 import asyncdispatch
 
@@ -19,7 +18,7 @@ type
     DWORD* = culong #  typedef unsigned long DWORD, *PDWORD, *LPDWORD; according to microsoft docs.
     WINBOOL* = int32
     WORD* = int16
-    HANDLE* = pointer
+    # HANDLE* = pointer
     LPVOID* = pointer
     LPDWORD* = ptr DWORD
     LPCSTR* = cstring
@@ -91,12 +90,12 @@ proc readEvents*(watcher: Watcher, buflen: int): seq[FileAction] =
     var bytesReturned: DWORD
 
     discard ReadDirectoryChangesW(
-        cast[HANDLE](watcher.fd.int),
+        watcher.fd,
         cast[LPVOID](buffer),
         bufsize,
         true, # watch sub stree
         filter,
-        cast[LPDWORD](bytesReturned.addr),
+        bytesReturned.addr,
         cast[LPOVERLAPPED](nil),
         cast[LPOVERLAPPED_COMPLETION_ROUTINE](nil))
 
@@ -126,17 +125,20 @@ proc readEvents*(watcher: Watcher, buflen: int): seq[FileAction] =
             filename[lenBytes.int] = 0.Utf16Char # set the null char
             action.filename = $filename
         ret.add(action)
-        if pData[].NextEntryOffset == 0:
+        let offset = pData[].NextEntryOffset
+        if offset == 0:
             break
-        pData = cast[ptr FILE_NOTIFY_INFORMATION](cast[uint64](pData) + pData[].NextEntryOffset.uint64)
-    dealloc buffer
+
+        pData = cast[ptr FILE_NOTIFY_INFORMATION](cast[uint64](pData) + offset.uint64)
+
+    dealloc(buffer)
     return ret
 
 #
 # Watcher
 #
 
-proc readEventsWrapper*(watcher: Watcher, evt: AsyncEvent, buflen: int): seq[FileAction] {.thread.} =
+proc readEventsWrapper*(watcher: Watcher, evt: AsyncEvent, buflen: int): seq[FileAction] =
     var res = readEvents(watcher, buflen)
     evt.trigger()
     return res
@@ -145,7 +147,8 @@ proc readSync*(watcher: Watcher, buflen: int = 10): seq[FileAction] =
     return readEvents(watcher, buflen)
 
 proc init*(watcher: Watcher) =
-    watcher.fd = AsyncFD(cast[int](CreateFile(
+    # This is a windows handle, but for uniformity, we pretend its an AsyncFD (=distinct int)
+    watcher.fd = CreateFile(
         cast[LPCSTR](watcher.target.cstring),
         FILE_LIST_DIRECTORY,
         FILE_SHARE_READ or FILE_SHARE_WRITE or FILE_SHARE_DELETE,
@@ -153,23 +156,12 @@ proc init*(watcher: Watcher) =
         OPEN_EXISTING,
         FILE_FLAG_BACKUP_SEMANTICS or FILE_FLAG_OVERLAPPED,
         cast[HANDLE](nil)
-    )))
-    if cast[HANDLE](watcher.fd) == INVALID_HANDLE_VALUE:
+    )
+    if watcher.fd == INVALID_HANDLE_VALUE:
         raise newException(OSError, "not existing file or directory: " &
                 watcher.target)
-    register(watcher.fd)
-
-proc read*(watcher: Watcher): Future[seq[FileAction]] =
-    var f: Future[seq[FileAction]] = newFuture[seq[FileAction]]("watcher.read")
-    let evt = newAsyncEvent()
-    let r = spawn readEventsWrapper(watcher, evt, 10) # we only pass evt to another thread.
-    proc cb(fd: AsyncFD): bool =
-        let v = ^r
-        f.complete(v) # this should be called inside the main thread so everything stays safe!
-    addEvent(evt, cb)
-    return f
 
 proc close*(watcher: Watcher) =
-    discard CloseHandle(cast[HANDLE](watcher.fd.int))
+    discard CloseHandle(watcher.fd)
 
 {.pop.}

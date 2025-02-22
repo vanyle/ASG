@@ -3,13 +3,14 @@ import asyncdispatch
 type
     FD* = cint
     WD* = cint
+    HANDLE* = pointer
     WatcherObject* = object
         poolIdx*: int
         target*: string
         stopChan*: ptr Channel[bool]
         callback*: proc (action: FileAction) {.gcsafe.}
         when defined(windows):
-            fd*: AsyncFD
+            fd*: HANDLE
         elif defined(unix):
             fd*: AsyncFD
             wd*: WD
