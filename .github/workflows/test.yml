@@ -1,32 +1,22 @@
-name: Test
+name: Build & Test
+
 on:
-  workflow_dispatch:
   push:
-    branches:
-      - master
+  pull_request:
+
+env:
+  CARGO_TERM_COLOR: always
 
 jobs:
-  compile:
+  build_and_test:
+    name: Build & Test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
 
-      - name: Cache nimble
-        id: cache-nimble
-        uses: actions/cache@v4
-        with:
-          path: ~/.nimble
-          key: ${{ runner.os }}-nimble-v2-${{ hashFiles('*.nimble') }}
-          restore-keys: |
-            ${{ runner.os }}-nimble-v2-
-      - uses: jiro4989/setup-nim-action@v2
-        with:
-          nim-version: "2.2.0"
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build
+        run: cargo build
 
-      - run: sudo apt-get install -y libluajit-5.1-dev
-      - run: nimble install --depsOnly
-
-      - run: nimble build -d:release -d:strip --opt:size
-      - run: cp -r ./assets ./build
-      - run: nimble test
+      - name: Test
+        run: cargo test

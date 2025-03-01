@@ -1,0 +1,20 @@
+[package]
+name = "asg"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+axum = { version = "0.8.1", features = ["ws"] }
+chrono = "0.4.39"
+colored = "3.0.0"
+html5ever = "0.29.1"
+markdown = { version = "1.0.0-alpha.22" }
+mlua = { version = "0.10.3", features = ["luau-jit", "serialize", "vendored"] }
+notify-debouncer-full = "0.5.0"
+regex = "1.11.1"
+serde = { version = "1.0.218", features = ["derive"] }
+serde_json = "1.0.139"
+tokio = "1.43.0"
+tower = { version = "0.5.2", features = ["util"] }
+tower-http = { version = "0.6.2", features = ["fs"] }
+walkdir = "2.5.0"

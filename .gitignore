@@ -1,10 +1,5 @@
 *.exe
 *.dll
-/website_output/
-tests/output
-build/
-!build/.gitkeep
-output
-nimble.develop
-nimble.paths
-config.nims
+/target
+TODO
+tests/**/build

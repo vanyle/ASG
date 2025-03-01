@@ -1,4 +1,5 @@
 name: Release
+
 on:
   workflow_dispatch:
     inputs:
@@ -9,31 +10,58 @@ on:
     tags:
       - "[0-9]+.[0-9]+.[0-9]+"
 
+env:
+  CARGO_TERM_COLOR: always
+
 jobs:
-  release-ubuntu:
+  release:
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+          - os_name: Linux-x86_64
+            os: ubuntu-20.04
+            target: x86_64-unknown-linux-gnu
+            bin: asg-linux-amd64
+          - os_name: Windows-x86_64
+            os: windows-latest
+            target: x86_64-pc-windows-msvc
+            bin: asg.exe
+          - os_name: macOS-x86_64
+            os: macOS-latest
+            target: x86_64-apple-darwin
+            bin: asg-darwin-amd64
+          - os_name: macOS-aarch64
+            os: macOS-latest
+            target: aarch64-apple-darwin
+            bin: asg-darwin-arm64
+    name: Build & Release
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
-
-      - name: Cache nimble
-        id: cache-nimble
-        uses: actions/cache@v4
+      - name: Build binary
+        uses: houseabsolute/actions-rust-cross@v0
         with:
-          path: ~/.nimble
-          key: ${{ runner.os }}-nimble-v2-${{ hashFiles('*.nimble') }}
-          restore-keys: |
-            ${{ runner.os }}-nimble-v2-
-      - uses: jiro4989/setup-nim-action@v2
-        with:
-          nim-version: "2.2.0"
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          command: "build"
+          target: ${{ matrix.platform.target }}
+          toolchain: ${{ matrix.toolchain }}
+          args: "--locked --release"
+          strip: true
 
-      - run: sudo apt-get install -y libluajit-5.1-dev
-      - run: nimble install --depsOnly
+      - name: Move binary and assets to build directory
+        run: cp -r ./assets ./build && cp ./target/${{ matrix.platform.target }}/release/asg ./build
+        if: matrix.platform.os_name != 'Windows-x86_64'
 
-      - run: nimble build -d:release -d:strip --opt:size
-      - run: cp -r ./assets ./build
-      - run: tar cvfz asg-${{ inputs.tag || github.ref_name }}-linux-amd64.tar.gz build/*
+      - name: Move binary and assets to build directory
+        run: cp -r ./assets ./build && cp ./target/${{ matrix.platform.target }}/release/asg.exe ./build
+        if: matrix.platform.os_name == 'Windows-x86_64'
+
+      - name: Remove .gitkeep
+        run: rm -f ./build/.gitkeep
+
+      - name: Archive build directory
+        run: tar cvfz asg-${{ inputs.tag || github.ref_name }}-linux-amd64.tar.gz build/*
 
       - name: Create a Release
         uses: elgohr/Github-Release-Action@v5
@@ -44,46 +72,9 @@ jobs:
           # ref_name is the tag.
           title: "ASG-${{ inputs.tag || github.ref_name }}"
           tag: "${{ inputs.tag || github.ref_name }}"
+        # This can fail if the release already exists. Let's ignore that.
+        continue-on-error: true
 
-      - uses: AButler/upload-release-assets@v3.0
-        with:
-          files: "*.tar.gz"
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-          release-tag: "${{ inputs.tag || github.ref_name }}"
-
-  release-windows:
-    runs-on: windows-latest
-    steps:
-      - uses: msys2/setup-msys2@v2
-        with:
-          release: false
-          update: true
-          msystem: MINGW64
-          install: >-
-            mingw-w64-x86_64-luajit
-            mingw-w64-x86_64-gcc
-
-      - run: echo "C:/msys64/mingw64/bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-      - uses: actions/checkout@v4
-
-      - name: Cache nimble
-        id: cache-nimble
-        uses: actions/cache@v4
-        with:
-          path: ~/.nimble
-          key: ${{ runner.os }}-nimble-v2-${{ hashFiles('*.nimble') }}
-          restore-keys: |
-            ${{ runner.os }}-nimble-v2-
-
-      - uses: jiro4989/setup-nim-action@v2
-        with:
-          nim-version: "2.2.0"
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-
-      - run: nimble install --depsOnly
-      - run: nimble build -d:release -d:strip --opt:size --passL:"-LC:/msys64/mingw64/lib"
-      - run: cp -r ./assets ./build
-      - run: tar cvfz asg-${{ inputs.tag || github.ref_name }}-windows-amd64.tar.gz build/*
       - uses: AButler/upload-release-assets@v3.0
         with:
           files: "*.tar.gz"

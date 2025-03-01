@@ -9,7 +9,7 @@
 
 ## The concept
 
-Create websites like blogs, documentation or portfolio by writing [Lua](https://www.lua.org/) code!
+Create websites like blogs, documentation or portfolios by writing [Luau](https://luau.org/) code!
 
 ```md
 Last updated at *{{ os.date() }}*
@@ -30,28 +30,23 @@ Last updated at *{{ os.date() }}*
 </ul>
 ```
 
-You can mix markdown, lua and latex! ASG is the ideal playground to learn Lua or build your website.
+You can mix Markdown, Luau and Latex! ASG is the ideal playground to learn Luau or build your website.
 Get started using [a theme](./assets/themes/) or from scratch.
 
 The modern theme looks like this:
 
-![modern theme](./docs/modern_theme.png)
+![modern theme](./docs/images/modern_theme.png)
 
 ## Getting started
 
 Go to the [release page](https://github.com/vanyle/ASG/releases) and download the latest version for your OS.
 Unzip the file where you want and add the location to your path.
 
-ASG supports Windows, Linux and MacOS, but we only generate binaries for Windows and Linux. MacOS binaries are available on request.
+ASG supports Windows, Linux and MacOS.
 
-On Linux, using bash, you can do:
+On Linux, you can do:
 ```bash
-cd ~
-curl -L https://github.com/vanyle/ASG/releases/download/0.0.1/asg-0.0.1-linux-amd64.tar.gz > asg.tar.gz && tar xzf asg.tar.gz
-mv build asg
-rm asg.tar.gz
-# Add asg to your path. for example, if you are using bash, add the following to your .bashrc
-export PATH="~/asg:$PATH"
+curl -fsSL https://raw.githubusercontent.com/vanyle/ASG/refs/heads/master/install/get_asg_linux.sh | sh
 ```
 
 To start ASG, do: `asg <input_directory> <output_directory>`
@@ -60,7 +55,7 @@ There are no other arguments as the `input_directory` should contain a config fi
 
 The static website will be generated inside `<output_directory>`
 
-More information available inside [the usage manual](./docs/usage.md)
+More information available inside [the reference](./docs/reference.md)
 
 Check out [how to use ASG with Github Pages to publish your website](./docs/github.md)
 
@@ -83,7 +78,8 @@ Check out [how to use ASG with Github Pages to publish your website](./docs/gith
 
 There are many static site generators that can be used to write blogs, however, most lack at least some of the following features:
 
-- No dependencies (No Ruby, No Node, No Lua installation, nothing to install other than the executable)
+- No dependencies (No Ruby, No Node, No Luau installation, nothing to install other than the executable)
+- Light weight, about 2 MB
 - Turing-complete templates (templates can really do anything, like fetching data from the web or running other programs)
 - Templates are not based on a domain specific language (aka they use an executing well known language)
 - Reasonable build times (a.k.a not noticable for regular users)
@@ -94,14 +90,14 @@ You can build websites quicker with it (or just generate plain text).
 You have access to components, you can make interactive demos and tutorials, everything!
 With pandoc, you can even convert this to a pdf.
 
-The templates provided are very powerful as they can define lua function that you can later use, making asg
+The templates provided are very powerful as they can define Luau function that you can later use, making asg
 incredibly useful when creating interactive documents (with graphs and others), or just making blogs.
 
-ASG is written in Nim with bits of Lua code for the HTML generation. It's overall pretty fast. In live reload mode
+ASG is written in Rust with bits of Luau code for the HTML generation. It's overall pretty fast. In live reload mode
 the time between you saving your file and the browser refreshing to render the new page is about 10 ms, which
 is good enough for live preview.
 
-ASG might be slower is you put very complex tasks in LUA (or a sleep / network access).
+ASG might be slower is you put very complex tasks in Luau (or a sleep / network access).
 
 ## Examples
 
