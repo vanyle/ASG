@@ -24,11 +24,9 @@ fn parse_commits(output: &str) -> BlameInfo {
     let mut blame_info = vec![];
     let mut current_commit = Commit::default();
     loop {
-        let l = lines.next();
-        if l.is_none() {
+        let Some(l) = lines.next() else {
             break;
-        }
-        let l = l.unwrap();
+        };
 
         if l.starts_with("commit") {
             let hash = rest_after_space(l);
@@ -42,11 +40,9 @@ fn parse_commits(output: &str) -> BlameInfo {
         } else if l.is_empty() {
             let mut m = String::new();
             loop {
-                let next_line = lines.next();
-                if next_line.is_none() {
+                let Some(next_line) = lines.next() else {
                     break;
-                }
-                let next_line = next_line.unwrap();
+                };
                 if next_line.is_empty() {
                     break;
                 }
@@ -64,8 +60,12 @@ pub fn git_blame(path: &Path) -> BlameInfo {
     if !path.exists() {
         return vec![];
     }
-    let parent_folder = path.parent().unwrap();
-    let filename = path.file_name().unwrap();
+    let Some(parent_folder) = path.parent() else {
+        return vec![];
+    };
+    let Some(filename) = path.file_name() else {
+        return vec![];
+    };
     let output = std::process::Command::new("git")
         .arg("log")
         .arg("--follow")
@@ -73,7 +73,7 @@ pub fn git_blame(path: &Path) -> BlameInfo {
         .current_dir(parent_folder)
         .output()
         .expect("Failed to execute git log --follow");
-    let output = String::from_utf8(output.stdout).unwrap();
+    let output = String::from_utf8_lossy(&output.stdout).to_string();
     parse_commits(&output)
 }
 

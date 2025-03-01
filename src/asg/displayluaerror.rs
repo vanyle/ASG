@@ -16,9 +16,8 @@ impl LuaEnvironment {
         println!("  Concerning {}", error_file);
         println!("  {}", error_msg);
 
-        if m_error_code.is_some() {
+        if let Some(error_code) = m_error_code {
             println!("  {}", m_red("Code responsible:"));
-            let error_code = m_error_code.unwrap();
 
             if error_code.len() > 400 {
                 let error_code = error_code.split_at(400).0;

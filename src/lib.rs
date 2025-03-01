@@ -35,8 +35,7 @@ pub async fn lib_main(input_directory: &Path, output_directory: &Path) {
         None,
         move |result: DebounceEventResult| match result {
             Ok(events) => events.iter().for_each(|event| {
-                // println!("{event:?}");
-                debounce_event_sender.send(event.clone()).unwrap();
+                let _ = debounce_event_sender.send(event.clone());
             }),
             Err(errors) => errors.iter().for_each(|error| println!("{error:?}")),
         },
@@ -45,9 +44,10 @@ pub async fn lib_main(input_directory: &Path, output_directory: &Path) {
 
     if is_live_reload_enabled {
         println!("👀 Watching {}", input_directory.to_string_lossy());
-        debouncer
-            .watch(input_directory, RecursiveMode::Recursive)
-            .unwrap();
+        let watch_result = debouncer.watch(input_directory, RecursiveMode::Recursive);
+        if let Err(e) = watch_result {
+            println!("Error: Could not watch because {}", e);
+        }
     }
 
     let port: Option<String> = env.get_config("port");
@@ -85,7 +85,10 @@ pub async fn lib_main(input_directory: &Path, output_directory: &Path) {
     // Perform the file processing on the main thread.
     if is_live_reload_enabled {
         loop {
-            let event = debounce_receiver.recv().await.unwrap();
+            let event = debounce_receiver.recv().await;
+            let Ok(event) = event else {
+                break;
+            };
             for path in &event.paths {
                 process_file(
                     &mut env,
@@ -109,7 +112,10 @@ async fn websocket_route(
 async fn handle_websocket(mut socket: WebSocket, debounce_event_receiver: Sender<DebouncedEvent>) {
     let mut receiver = debounce_event_receiver.subscribe();
     loop {
-        receiver.recv().await.unwrap();
+        let event = receiver.recv().await;
+        if event.is_err() {
+            break;
+        }
         let result = socket.send(Message::text("reload")).await;
         if result.is_err() {
             break;
@@ -131,7 +137,7 @@ pub async fn compile_without_server(
     }
 
     if !output_directory.exists() {
-        std::fs::create_dir_all(output_directory).unwrap();
+        let _ = std::fs::create_dir_all(output_directory);
     }
 
     let mut env = LuaEnvironment::new(input_directory, output_directory, asset_directory);
