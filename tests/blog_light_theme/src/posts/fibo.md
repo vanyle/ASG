@@ -59,4 +59,4 @@ end
 
 %}
 
-Fibo rec 10 = {{ fibo_rec(30) }}
+The 10th fibonacci number is {{ fibo_rec(30) }}

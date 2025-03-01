@@ -45,7 +45,7 @@ To display the build date for example, you can write something like:
 _Last updated: {{ os.date() }}_
 ```
 
-You have also access to several variables by default like the page variable:
+You have also access to several variables by default like the file variable:
 
 ```md
 # Some page

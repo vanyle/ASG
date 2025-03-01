@@ -8,7 +8,7 @@ head = ""
 
 ## About me
 
-Hello everybody, I'm Matt, a programmer, teacher, father and husband or something.
+Hello everybody, I'm the author of this blog.
 
 I'm {{ math.floor(current_year - birth) }} years old and i like rambling about my life on the internet.
 

@@ -26,4 +26,3 @@ This is another plot:
 
 {{ plot(f,0,20,0.2) }}
 
-??

@@ -25,7 +25,6 @@ pub struct FileInfo {
     pub title: String,
     pub description: String,
     pub tags: Vec<String>,
-    pub parsed_body: String,
 }
 
 pub struct LuaEnvironment {
@@ -112,13 +111,14 @@ impl LuaEnvironment {
         let posts_path = Rc::new(input_directory.join("posts"));
         let cache_ref = env.cache.clone();
 
+        let posts_path_ref = posts_path.clone();
         env.lua
             .globals()
             .set(
                 "posts",
                 env.lua
                     .create_function(move |lua: &Lua, ()| {
-                        if !posts_path.exists() {
+                        if !posts_path_ref.exists() {
                             let iterator_nil =
                                 lua.create_function(|_, ()| Ok(LuaValue::Nil)).unwrap();
                             return Ok(iterator_nil);
@@ -126,14 +126,15 @@ impl LuaEnvironment {
 
                         let cache_ref = cache_ref.clone();
 
-                        let walker = walkdir::WalkDir::new(posts_path.as_path()).sort_by(|a, b| {
-                            let t1 = a.metadata().ok().and_then(|meta| meta.modified().ok());
-                            let t2 = b.metadata().ok().and_then(|meta| meta.modified().ok());
-                            match (t1, t2) {
-                                (Some(t1), Some(t2)) => t1.cmp(&t2),
-                                _ => std::cmp::Ordering::Equal,
-                            }
-                        });
+                        let walker =
+                            walkdir::WalkDir::new(posts_path_ref.as_path()).sort_by(|a, b| {
+                                let t1 = a.metadata().ok().and_then(|meta| meta.modified().ok());
+                                let t2 = b.metadata().ok().and_then(|meta| meta.modified().ok());
+                                match (t1, t2) {
+                                    (Some(t1), Some(t2)) => t1.cmp(&t2),
+                                    _ => std::cmp::Ordering::Equal,
+                                }
+                            });
                         let iterator = Rc::new(RefCell::new(walker.into_iter()));
 
                         let iterator_fn = lua
@@ -191,6 +192,30 @@ impl LuaEnvironment {
                         let data_path = data_path.as_path();
                         let data_file = data_path.join(filename);
                         Ok(csv::read_csv_file(&data_file))
+                    })
+                    .unwrap(),
+            )
+            .unwrap();
+
+        let cache_ref = env.cache.clone();
+        env.lua
+            .globals()
+            .set(
+                "get_body",
+                env.lua
+                    .create_function(move |_, filename: String| {
+                        let cache = cache_ref.borrow();
+                        for path in cache.file_cache.keys() {
+                            if path.file_name().map(|f| f.to_string_lossy().to_string())
+                                == Some(filename.clone())
+                            {
+                                if let Ok(content) = std::fs::read_to_string(path) {
+                                    return Ok(content);
+                                }
+                            }
+                        }
+
+                        Ok(String::new())
                     })
                     .unwrap(),
             )

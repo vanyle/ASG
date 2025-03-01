@@ -295,11 +295,32 @@ fn compile_file_recursive(
     let _ = file_info_table.set("name", file_path.to_string_lossy().to_string());
     let _ = file_info_table.set("size", file_metadata.len());
 
-    let datetime: DateTime<chrono::offset::Utc> = file_metadata.modified().unwrap().into();
+    let datetime: DateTime<chrono::Local> =
+        file_metadata.modified().unwrap_or(SystemTime::now()).into();
+    let blame = git_times::git_blame(file_path);
+
+    file_info_table
+        .set(
+            "last_modified_os",
+            datetime.format("%d/%m/%Y %T").to_string(),
+        )
+        .unwrap();
+
     file_info_table
         .set(
             "last_modified",
-            datetime.format("dd/MM/yy HH:mm:ss").to_string(),
+            git_times::get_git_modification_time(&blame)
+                .format("%d/%m/%Y %T")
+                .to_string(),
+        )
+        .unwrap();
+
+    file_info_table
+        .set(
+            "created_at",
+            git_times::get_git_creation_time(&blame)
+                .format("%d/%m/%Y %T")
+                .to_string(),
         )
         .unwrap();
 
@@ -447,7 +468,7 @@ fn compile_file_recursive(
         }
     }
 
-    let datetime: DateTime<chrono::Utc> =
+    let datetime: DateTime<chrono::Local> =
         file_metadata.modified().unwrap_or(SystemTime::now()).into();
     let blame = git_times::git_blame(file_path);
 
@@ -466,7 +487,6 @@ fn compile_file_recursive(
         title: title.unwrap_or("".to_string()),
         description: description.unwrap_or("".to_string()),
         tags: tags.iter().map(|s| s.to_string()).collect(),
-        parsed_body: raw_data.clone(),
     };
     env.cache
         .borrow_mut()

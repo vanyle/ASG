@@ -4,10 +4,10 @@ setvar("layout",theme .. ".html")
 %}
 
 ## Caching
+*Cache cache cache*
 
-If there is a magic spell that can make your programs run faster, caching probably is it.
+The current file is called {{ file.name }}
 
-We'll that's short....
+It was last modified at {{ file.last_modified }}
 
-
-s
+It was was created at (according to Git) {{ file.created_at }}
