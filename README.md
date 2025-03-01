@@ -42,16 +42,24 @@ The modern theme looks like this:
 Go to the [release page](https://github.com/vanyle/ASG/releases) and download the latest version for your OS.
 Unzip the file where you want and add the location to your path.
 
-ASG supports Windows, Linux and MacOS.
+You can also use the following commands that do the same and install asg to `~/.asg`:
 
 On Linux, you can do:
 ```bash
 curl -fsSL https://raw.githubusercontent.com/vanyle/ASG/refs/heads/master/install/get_asg_linux.sh | sh
 ```
 
-To start ASG, do: `asg <input_directory> <output_directory>`
+On MacOS:
+```bash
+curl -fsSL https://raw.githubusercontent.com/vanyle/ASG/refs/heads/master/install/get_asg_macos.sh | sh
+```
 
-There are no other arguments as the `input_directory` should contain a config file that stores all the configuration.
+On Windows:
+```bash
+powershell -c "irm https://raw.githubusercontent.com/vanyle/ASG/refs/heads/master/install/get_asg_win.ps1 | iex"
+```
+
+To start ASG, do: `asg <input_directory> <output_directory>`
 
 The static website will be generated inside `<output_directory>`
 
@@ -63,15 +71,11 @@ Check out [how to use ASG with Github Pages to publish your website](./docs/gith
 
 - Write markdown
 - **Lua scripting** for templates
-- Use ready-made templates to customize your website
-- Extend existing templates or create your own
+- Use and extend existing templates or create your own
 - Support **latex**, **mermaid diagrams** and **code highlighting**
-- Convert Obsidian/Typora notes into a fancy static website
-- Generate home page and links
-- Generate short HTML with fast load times by building dependencies and only including them when necessary
+- Generate HTML with fast load times by building dependencies and only including them when necessary
 - **Standalone executable** (no dependencies)
-- View your website as you type and save with **live reloading**.
-- Incremental build support
+- **Live reloading**.
 - Reasonable (sub-second) build times, even when incremental builds are disabled
 
 ## What makes ASG different from other website generators?
@@ -79,7 +83,6 @@ Check out [how to use ASG with Github Pages to publish your website](./docs/gith
 There are many static site generators that can be used to write blogs, however, most lack at least some of the following features:
 
 - No dependencies (No Ruby, No Node, No Luau installation, nothing to install other than the executable)
-- Light weight, about 2 MB
 - Turing-complete templates (templates can really do anything, like fetching data from the web or running other programs)
 - Templates are not based on a domain specific language (aka they use an executing well known language)
 - Reasonable build times (a.k.a not noticable for regular users)
