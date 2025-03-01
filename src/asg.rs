@@ -19,6 +19,21 @@ pub fn generate_file(
     base_input_directory: &Path,
     output_directory: &Path,
 ) {
+    let mut should_be_compiled = false;
+    for format in tokenizer::LUA_TEMPLATE_FORMATS {
+        if input_file.to_string_lossy().ends_with(format) {
+            should_be_compiled = true;
+            break;
+        }
+    }
+
+    if !should_be_compiled {
+        let destination_url = tokenizer::get_destination_url(input_file, base_input_directory);
+        let output_file = output_directory.join(&destination_url);
+        let _ = fs::copy(input_file, &output_file);
+        return;
+    }
+
     // Let's run config.lua if it exists
     let config_file = base_input_directory.join("config.lua");
     if config_file.exists() {
@@ -33,18 +48,6 @@ pub fn generate_file(
     let is_debug_info = env.is_enabled("debugInfo");
     let is_profiling_enabled = env.is_enabled("profiler");
     let generation_instant_start = time::Instant::now();
-
-    let mut should_be_compiled = false;
-    for format in tokenizer::LUA_TEMPLATE_FORMATS {
-        if input_file.to_string_lossy().ends_with(format) {
-            should_be_compiled = true;
-            break;
-        }
-    }
-
-    if !should_be_compiled {
-        return;
-    }
 
     let destination_url = tokenizer::get_destination_url(input_file, base_input_directory);
     let output_file = output_directory.join(&destination_url);
