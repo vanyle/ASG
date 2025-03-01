@@ -3,6 +3,12 @@ name = "asg"
 version = "0.1.0"
 edition = "2024"
 
+[profile.release]
+opt-level = "s"
+strip = "symbols"
+lto = "thin"
+panic = "abort"
+
 [dependencies]
 axum = { version = "0.8.1", features = ["ws"] }
 chrono = "0.4.39"
