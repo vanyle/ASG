@@ -17,17 +17,19 @@ jobs:
   release_linux:
     name: Release - Linux
     runs-on: ubuntu-latest
+    container:
+      image: messense/rust-musl-cross:x86_64-musl
 
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions-rust-lang/setup-rust-toolchain@v1
+      - run: rustup target add x86_64-unknown-linux-musl
 
       - name: Build
-        run: cargo build --release
+        run: cargo build --target=x86_64-unknown-linux-musl --release
 
       - name: Move binary and assets to build directory
-        run: cp -r ./assets ./build && cp ./target/release/asg ./build
+        run: cp -r ./assets ./build && cp ./target/x86_64-unknown-linux-musl/release/asg ./build
 
       - name: Remove .gitkeep
         run: rm -f ./build/.gitkeep

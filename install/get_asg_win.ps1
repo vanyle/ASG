@@ -2,7 +2,7 @@
 
 Write-Output "Installing ASG"
 cd $HOME
-Invoke-WebRequest "https://github.com/vanyle/ASG/releases/download/0.1.1/asg-0.1.1-windows-amd64.tar.gz" -OutFile asg.tar.gz
+Invoke-WebRequest "https://github.com/vanyle/ASG/releases/download/0.2.0/asg-0.2.0-windows-amd64.tar.gz" -OutFile asg.tar.gz
 tar xzf asg.tar.gz
 Move-Item -Path build -Destination .asg
 Remove-Item -Path asg.tar.gz
