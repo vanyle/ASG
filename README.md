@@ -101,6 +101,13 @@ ASG might be slower is you put very complex tasks in Luau (or a sleep / network 
 
 ## Examples
 
-You can see examples in the [`tests/input` folder](./tests/input/).
+You can see examples in the [`tests` folder](./tests/).
 Every subfolder contains a different website that can be built.
-You can take an example an extend it to create your own website!
+You can take an example and extend it to create your own website!
+
+## Security
+
+ASG websites can perform almost any operation during website compilation. Avoid building blogs you don't trust.
+
+While Luau provides some sandboxing, ASG allows the Luau code to read any file inside the input and output directory provided and
+Internet access. Little security effort has been put into making sure that Luau code is not able to escape this sandbox.
