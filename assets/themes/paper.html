@@ -9,58 +9,67 @@ structure = parse_html(body)
 style = style or ""
 style = style .. [[
 <style>
-    html,body{
-        padding:0;
-        margin:0;
-        height:100%;
+    html,
+    body {
+        padding: 0;
+        margin: 0;
+        height: 100%;
         font-family: Helvetica;
         background-color: #ddd;
     }
-    body{
+
+    body {
         display: flex;
         flex-direction: column;
     }
-    code{
+
+    code {
         font-family: monospace;
-        background-color:#eee;
+        background-color: #eee;
     }
-    #page{
+
+    #page {
         flex-grow: 1;
         display: flex;
         justify-content: center;
     }
-    #content{
+
+    #content {
         max-width: 900px;
     }
-        #sidebar {
+
+    #sidebar {
         padding-right: 16px;
         background-color: #eee;
     }
-    #inner_sidebar{
+
+    #inner_sidebar {
         position: sticky;
         top: 0px;
         padding: 16px;
     }
-    
-    #content{
+
+    #content {
         background-color: white;
         padding-left: 16px;
     }
-    #sidebar h1, #sidebar h2 {
+
+    #sidebar h1,
+    #sidebar h2 {
         margin: 0;
         padding-bottom: 8px;
     }
-    </style>
+</style>
 ]]
 
 for i = 1,6 do
-    style = style .. [[
-        <style>
-            .nav-]] .. i .. [[ {
-                padding-left: ]] .. (i*8) .. [[ px;
-            }
-        </style>
-    ]]
+style = style .. [[
+<style>
+    .nav-]] .. i .. [[ {
+        padding-left: ]] .. (i*8) .. [[ px;
+    }
+</style>
+]]
 end
 
 %}
@@ -68,13 +77,13 @@ end
 <div id="page">
     <div id="sidebar">
         <div id="inner_sidebar">
-        <div>
-            {% for i in ipairs(structure) do %}
-            <div class="nav-{{ structure[i].rank }}">
-                <a href="#{{ structure[i].title }}">{{ structure[i].title }}</a>
+            <div>
+                {% for i in ipairs(structure) do %}
+                <div class="nav-{{ structure[i].rank }}">
+                    <a href="#{{ structure[i].title }}">{{ structure[i].title }}</a>
+                </div>
+                {% end %}
             </div>
-            {% end %}
-        </div>
         </div>
     </div>
     <section id="content">
@@ -82,9 +91,9 @@ end
     </section>
 </div>
 <script>
-    {% 
-        -- Needed for navigation
-    %}
+    {%
+        --Needed for navigation
+            %}
     document.querySelectorAll("h1,h2,h3,h4,h5,h6").forEach((heading) => {
         heading.id = heading.innerHTML;
     })

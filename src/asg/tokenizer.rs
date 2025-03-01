@@ -6,11 +6,10 @@ use std::{
 };
 
 use crate::asg::lua_environment::{FileInfo, LuaEnvironment, get_asset_dir_path, get_exe_dir_path};
-use crate::asg::strip_html;
 use chrono::DateTime;
 use colored::Colorize;
 
-use super::git_times;
+use super::{git_times, handle_html::strip_html};
 
 pub struct Tokenized<'a> {
     underlying_data: &'a str,
@@ -391,7 +390,7 @@ fn compile_file_recursive(
 
     // Strip script and style
 
-    let without_html = strip_html::strip_html(&raw_data);
+    let without_html = strip_html(&raw_data);
     let maybe_layout_file;
     let word_count;
     let are_errors_colored;
@@ -468,7 +467,7 @@ fn compile_file_recursive(
         }
     }
 
-    let datetime: DateTime<chrono::Local> =
+    let datetime: DateTime<chrono::Utc> =
         file_metadata.modified().unwrap_or(SystemTime::now()).into();
     let blame = git_times::git_blame(file_path);
 

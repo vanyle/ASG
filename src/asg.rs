@@ -5,8 +5,8 @@ use std::{fs, time};
 pub mod csv;
 pub mod displayluaerror;
 pub mod git_times;
+pub mod handle_html;
 pub mod lua_environment;
-pub mod strip_html;
 pub mod tokenizer;
 
 use lua_environment::LuaEnvironment;

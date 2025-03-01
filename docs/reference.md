@@ -156,14 +156,7 @@ _These functions are implemented in Nim code_
 - `setvar(key: string, value: string)`: Set a variable like the current layout. This is used to configure build options.
 - `read_data(filename: string)`: Read the file named `filename` inside the `data` folder and return its content. Return an empty string if the file does not exist.
 - `read_csv(filename: string)`: Read the file named `filename` inside the `data` folder and return its content as a table of table for every row of the CSV.
-
-### Upcoming functions
-
-_These functions will be available in a future release_
-
 - `parse_html(s: string)`: Parse the HTML inside s and return a table with the headings and their content. Useful for building summaries.
-
-Note that the API is not stable yet and functions might get renamed for consistency.
 
 ### Lua functions
 

@@ -10,7 +10,7 @@ use colored::Colorize;
 use mlua::{Lua, LuaSerdeExt, Value as LuaValue};
 use serde::{Deserialize, Serialize};
 
-use super::{csv, tokenizer};
+use super::{csv, handle_html, tokenizer};
 
 // Information about a file accessible from the Lua script.
 #[derive(Serialize, Deserialize)]
@@ -216,6 +216,29 @@ impl LuaEnvironment {
                         }
 
                         Ok(String::new())
+                    })
+                    .unwrap(),
+            )
+            .unwrap();
+
+        // Add parse_html function binding
+        env.lua
+            .globals()
+            .set(
+                "parse_html",
+                env.lua
+                    .create_function(move |lua, html: String| {
+                        let headings = handle_html::parse_html(&html);
+                        let result_table = lua.create_table()?;
+
+                        for (i, heading) in headings.iter().enumerate() {
+                            let heading_table = lua.create_table()?;
+                            heading_table.set("rank", heading.rank)?;
+                            heading_table.set("title", heading.text.clone())?;
+                            result_table.set(i + 1, heading_table)?;
+                        }
+
+                        Ok(result_table)
                     })
                     .unwrap(),
             )
