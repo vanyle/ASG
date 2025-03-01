@@ -14,6 +14,7 @@ regex = "1.11.1"
 scraper = "0.23.1"
 serde = { version = "1.0.218", features = ["derive"] }
 serde_json = "1.0.139"
+syntect = "5.2.0"
 tokio = "1.43.0"
 tower = { version = "0.5.2", features = ["util"] }
 tower-http = { version = "0.6.2", features = ["fs"] }

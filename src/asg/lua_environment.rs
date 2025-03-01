@@ -10,7 +10,8 @@ use colored::Colorize;
 use mlua::{Lua, LuaSerdeExt, Value as LuaValue};
 use serde::{Deserialize, Serialize};
 
-use super::{csv, handle_html, tokenizer};
+use super::highlight_syntax;
+use super::{csv, handle_html, highlight_syntax::SyntaxHighlighter, tokenizer};
 
 // Information about a file accessible from the Lua script.
 #[derive(Serialize, Deserialize)]
@@ -58,6 +59,7 @@ impl LuaEnvironment {
 
         let config_table = Rc::new(RefCell::new(HashMap::new()));
         let cache = Rc::new(RefCell::new(tokenizer::ParsingCache::new()));
+
         let env = LuaEnvironment {
             lua,
             config_table,
@@ -239,6 +241,21 @@ impl LuaEnvironment {
                         }
 
                         Ok(result_table)
+                    })
+                    .unwrap(),
+            )
+            .unwrap();
+
+        // Add highlight_syntax function binding
+        env.lua
+            .globals()
+            .set(
+                "highlight_syntax",
+                env.lua
+                    .create_function(move |_, (code, lang): (String, String)| {
+                        let sh = SyntaxHighlighter::new();
+                        let html = highlight_syntax::highlight_syntax(&sh, &code, &lang);
+                        Ok(html)
                     })
                     .unwrap(),
             )

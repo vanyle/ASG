@@ -14,12 +14,20 @@
 Fibonacci numbers are a sequence that verifies the equation: $f_{n+1} = f_{n+1} + f_{n}$ with \\[f_0 = 0, f_1 = 1\\].
 
 The program below will print the first {{example_count}} fibonacci numbers:
-```python
+
+<style>
+.py-code > *{
+	padding: 16px;
+}
+</style>
+<div class="py-code">
+{{ highlight_syntax([[
 a,b = 0,1
-for i in range({{example_count}}):
-	print(a)
-	a,b = b, a+b
-```
+for i in range(30):
+    print(a)
+    a,b = b, a+b
+]], "py") }}
+</div>
 
 Quick explaination of how the program works with a diagram.
 
