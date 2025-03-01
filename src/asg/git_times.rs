@@ -2,6 +2,7 @@ use std::path::Path;
 
 use chrono::{DateTime, Local, TimeZone};
 
+#[derive(Default)]
 pub struct Commit {
     pub hash: String,
     pub message: String,
@@ -9,29 +10,19 @@ pub struct Commit {
     pub date: String,
 }
 
-impl Commit {
-    fn new() -> Commit {
-        Commit {
-            hash: String::new(),
-            message: String::new(),
-            author: String::new(),
-            date: String::new(),
-        }
-    }
-}
-
 pub type BlameInfo = Vec<Commit>;
 
 fn rest_after_space(s: &str) -> String {
-    let mut iter = s.split(" ");
-    iter.next();
-    iter.collect::<Vec<&str>>().join(" ").trim().to_string()
+    match s.find(' ') {
+        Some(pos) => s[pos + 1..].trim().to_string(),
+        None => String::new(),
+    }
 }
 
 fn parse_commits(output: &str) -> BlameInfo {
     let mut lines = output.lines();
     let mut blame_info = vec![];
-    let mut current_commit = Commit::new();
+    let mut current_commit = Commit::default();
     loop {
         let l = lines.next();
         if l.is_none() {
@@ -41,13 +32,13 @@ fn parse_commits(output: &str) -> BlameInfo {
 
         if l.starts_with("commit") {
             let hash = rest_after_space(l);
-            current_commit.hash = hash.to_string();
+            current_commit.hash = hash;
         } else if l.starts_with("Author: ") {
             let author = rest_after_space(l);
-            current_commit.author = author.to_string();
+            current_commit.author = author;
         } else if l.starts_with("Date: ") {
             let date = rest_after_space(l);
-            current_commit.date = date.to_string();
+            current_commit.date = date;
         } else if l.is_empty() {
             let mut m = String::new();
             loop {
@@ -63,7 +54,7 @@ fn parse_commits(output: &str) -> BlameInfo {
             }
             current_commit.message = m;
             blame_info.push(current_commit);
-            current_commit = Commit::new();
+            current_commit = Commit::default();
         }
     }
     blame_info

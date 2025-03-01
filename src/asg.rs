@@ -6,6 +6,7 @@ pub mod csv;
 pub mod displayluaerror;
 pub mod git_times;
 pub mod handle_html;
+pub mod highlight_syntax;
 pub mod lua_environment;
 pub mod tokenizer;
 
@@ -19,14 +20,13 @@ pub fn generate_file(
     output_directory: &Path,
 ) {
     // Let's run config.lua if it exists
-    // TODO: don't run it every time!
     let config_file = base_input_directory.join("config.lua");
     if config_file.exists() {
         env.run_file_and_display_error(&config_file);
     } else {
         println!(
             "Error: Config file not at {}",
-            config_file.to_str().unwrap()
+            config_file.to_string_lossy()
         );
     }
 
@@ -36,7 +36,7 @@ pub fn generate_file(
 
     let mut should_be_compiled = false;
     for format in tokenizer::LUA_TEMPLATE_FORMATS {
-        if input_file.to_str().unwrap().ends_with(format) {
+        if input_file.to_string_lossy().ends_with(format) {
             should_be_compiled = true;
             break;
         }
@@ -50,26 +50,26 @@ pub fn generate_file(
     let output_file = output_directory.join(&destination_url);
 
     if is_debug_info {
-        println!(
-            "Compiling {}",
-            input_file.to_str().unwrap_or("<non-utf8 path>")
-        );
+        println!("Compiling {}", input_file.to_string_lossy());
     }
 
     let maybe_str =
         tokenizer::compile_file(env, input_file, Some(&output_file), base_input_directory);
 
     if let Some(content) = maybe_str {
-        let prefix = output_file.parent().unwrap();
-        let _ = fs::create_dir_all(prefix);
-
-        if is_debug_info {
-            println!(
-                "Writing to {}",
-                output_file.to_str().unwrap_or("<non-utf8 path>")
-            );
+        let prefix = output_file.parent();
+        if let Some(prefix) = prefix {
+            let _ = fs::create_dir_all(prefix);
         }
-        fs::write(&output_file, content).unwrap();
+        if is_debug_info {
+            println!("Writing to {}", output_file.to_string_lossy());
+        }
+        let write_result = fs::write(&output_file, content);
+        if is_debug_info {
+            if let Err(e) = write_result {
+                println!("Error: Could not write it because {}", e);
+            }
+        }
         let delta = generation_instant_start.elapsed();
 
         if is_profiling_enabled {
@@ -90,8 +90,15 @@ fn recursive_file_walk(
     input_directory: &Path,
     output_directory: &Path,
 ) {
-    for entry in fs::read_dir(current_dir).unwrap() {
-        let entry = entry.unwrap();
+    let iter = fs::read_dir(current_dir);
+    let Ok(iter) = iter else {
+        return;
+    };
+
+    for entry in iter {
+        let Ok(entry) = entry else {
+            continue;
+        };
         let path = entry.path();
 
         // Ignore data directory
@@ -156,12 +163,14 @@ pub fn process_file(
         }
         notify::EventKind::Remove(_) => {
             let mut output_file =
-                output_directory.join(file.strip_prefix(input_directory).unwrap());
-            if output_file.to_str().unwrap().ends_with(".md") {
-                output_file = output_file.with_extension("html");
+                output_directory.join(file.strip_prefix(input_directory).unwrap_or(file));
+            if let Some(file_str) = output_file.to_str() {
+                if file_str.ends_with(".md") {
+                    output_file = output_file.with_extension("html");
+                }
             }
             if output_file.exists() {
-                fs::remove_file(output_file).unwrap();
+                let _ = fs::remove_file(output_file);
             }
         }
         notify::EventKind::Other => {

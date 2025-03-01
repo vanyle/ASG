@@ -20,12 +20,9 @@ pub fn parse_html(html: &str) -> Vec<HtmlHeading> {
                 .to_digit(10)
                 .unwrap_or(0) as u8;
 
-            let text = element.text().collect::<Vec<_>>().join("");
+            let text = element.text().collect::<String>().trim().to_string();
 
-            result.push(HtmlHeading {
-                rank,
-                text: text.trim().to_string(),
-            });
+            result.push(HtmlHeading { rank, text });
         }
     }
 
@@ -38,8 +35,7 @@ pub fn strip_html(s: &str) -> String {
     fragment
         .root_element()
         .text()
-        .collect::<Vec<_>>()
-        .join("")
+        .collect::<String>()
         .trim()
         .to_string()
 }

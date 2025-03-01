@@ -52,7 +52,7 @@ pub async fn lib_main(input_directory: &Path, output_directory: &Path) {
 
     let port: Option<String> = env.get_config("port");
 
-    if port.is_some() {
+    if let Some(port) = port {
         let file_404 = output_directory
             .join("404.html")
             .to_string_lossy()
@@ -70,7 +70,6 @@ pub async fn lib_main(input_directory: &Path, output_directory: &Path) {
                 )
                 .fallback_service(serve_dir.clone());
 
-            let port = port.unwrap();
             let listening_addr = format!("0.0.0.0:{}", port);
             let printed_addr = format!("localhost:{}", port);
             println!(

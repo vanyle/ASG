@@ -502,5 +502,5 @@ pub fn get_destination_url(file_path: &Path, base_input_dir: &Path) -> String {
     if output_file.to_string_lossy().ends_with(".md") {
         output_file = output_file.with_extension("html");
     }
-    output_file.to_string_lossy().to_string()
+    output_file.to_string_lossy().into_owned()
 }
