@@ -11,6 +11,6 @@ rm -rf build
 
 export PATH="$HOME/.asg:$PATH"
 
-echo "You're all set! You can now run 'asg' to see the available commands"
+echo "You're all set! You can now run 'asg'."
 echo "If you want to add asg to your path, add the following to your .zshrc"
 echo "export PATH=\"$HOME/.asg:\$PATH\""

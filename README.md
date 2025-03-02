@@ -54,9 +54,9 @@ On MacOS:
 curl -fsSL https://raw.githubusercontent.com/vanyle/ASG/refs/heads/master/install/get_asg_macos.sh | sh
 ```
 
-On Windows:
-```bash
-powershell -c "irm https://raw.githubusercontent.com/vanyle/ASG/refs/heads/master/install/get_asg_win.ps1 | iex"
+On Windows (with Powershell):
+```powershell
+irm "https://raw.githubusercontent.com/vanyle/ASG/refs/heads/master/install/get_asg_win.ps1" | iex
 ```
 
 To start ASG, do: `asg <input_directory> <output_directory>`

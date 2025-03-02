@@ -7,7 +7,7 @@ tar xzf asg.tar.gz
 Move-Item -Path build -Destination .asg
 Remove-Item -Path asg.tar.gz
 
-$env:Path += ";$HOME/.asg"
+$env:Path += ";$HOME\.asg"
 
 Write-Output "You're all set! You can now run 'asg' to see the available commands"
-Write-Output "You might want to add $HOME/.asg to your PATH"
+Write-Output "You might want to add $HOME\.asg to your PATH"
