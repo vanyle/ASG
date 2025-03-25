@@ -107,7 +107,7 @@ impl Default for ParsingCache {
 }
 
 // For small lists, vec is faster than hashset
-pub const LUA_TEMPLATE_FORMATS: &[&str] = &[".html", ".md", ".css", ".js", ".txt", ".asg"];
+pub const LUA_TEMPLATE_FORMATS: &[&str] = &[".html", ".md", ".css", ".js", ".txt", ".asg", ".xml"];
 
 /// Pure function (but reads IO).
 /// Takes the content of a file and outputs a partially parsed version.
