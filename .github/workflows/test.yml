@@ -13,7 +13,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions-rust-lang/setup-rust-toolchain@v1
+      # version 1.11. In this crazy system, hashes are the only way to pin dependencies
+      - uses: actions-rust-lang/setup-rust-toolchain@9399c7bb15d4c7d47b27263d024f0a4978346ba4
+        with:
+          toolchain: stable
 
       - name: Build
         run: cargo build

@@ -3,3 +3,4 @@
 /target
 TODO
 tests/**/build
+.DS_Store
