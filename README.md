@@ -114,3 +114,12 @@ ASG websites can perform almost any operation during website compilation. Avoid 
 
 While Luau provides some sandboxing, ASG allows the Luau code to read any file inside the input and output directory provided and
 Internet access. Little security effort has been put into making sure that Luau code is not able to escape this sandbox.
+
+## Developing on ASG
+
+You can get started with [Firebase studio](https://studio.firebase.google.com/)
+
+- Enter this repository URL.
+- Build using `cargo build`.
+- Copy the `assets` folder next to the executable inside `target/debug`
+- Start the web preview and see the `blog_light_theme` example compiled!
