@@ -13,8 +13,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      # version 1.11. In this crazy system, hashes are the only way to pin dependencies
-      - uses: actions-rust-lang/setup-rust-toolchain@9399c7bb15d4c7d47b27263d024f0a4978346ba4
+      # version 1.13. In this crazy system, hashes are the only way to pin dependencies
+      - uses: actions-rust-lang/setup-rust-toolchain@fb51252c7ba57d633bc668f941da052e410add48
         with:
           toolchain: stable
 
@@ -23,3 +23,6 @@ jobs:
 
       - name: Test
         run: cargo test
+
+      - name: Clippy
+        run: cargo clippy --all-targets --all-features
