@@ -1,3 +1,4 @@
+use core::str;
 use std::{
     cmp::min,
     collections::HashMap,
@@ -11,6 +12,7 @@ use colored::Colorize;
 
 use super::{git_times, handle_html::strip_html};
 
+#[derive(Debug, PartialEq)]
 pub struct Tokenized<'a> {
     underlying_data: &'a str,
     position: usize,
@@ -28,31 +30,42 @@ impl<'a> Iterator for Tokenized<'a> {
 
     fn next(&mut self) -> Option<Self::Item> {
         let len = self.underlying_data.len();
-        let start = self.position;
+        let mut start = self.position;
 
         if self.position >= len {
             return None;
         }
 
-        let mut i = start;
+        let data_slice = self.underlying_data.as_bytes();
 
-        // If we start with a delimiter, we should return it
-        let p = &self.underlying_data[i..min(i + 2, len)];
-        if p == "{{" || p == "}}" || p == "{%" || p == "%}" {
-            self.position = i + 2;
-            return Some(p);
+        let mut i = start;
+        let p = &data_slice[i..min(i + 3, len)];
+        if p == b"\\{{" || p == b"\\}}" || p == b"\\{%" || p == b"\\%}" {
+            // We have an escaped delimiter, we remove one backslash and we keep going. 
+            start += 1;
+            i += 2;
+        }else{
+            // If we start with a delimiter, we should return it
+            let p = &data_slice[i..min(i + 2, len)];
+            if p == b"{{" || p == b"}}" || p == b"{%" || p == b"%}" {
+                self.position = i + 2;
+                return Some(&self.underlying_data[start..min(i+2, len)]);
+            }
         }
 
         i += 1;
 
         while i < len {
-            unsafe {
-                // Does not matter if p is not a valid unicode string.
-                let p = self.underlying_data.get_unchecked(i..min(i + 2, len));
-                if p == "{{" || p == "}}" || p == "{%" || p == "%}" {
-                    self.position = i;
-                    return Some(&self.underlying_data[start..i]);
-                }
+            // Does not matter if p is not a valid unicode string.
+            let p = &data_slice[i..min(i + 3, len)];
+            if p == b"\\{{" || p == b"\\}}" || p == b"\\{%" || p == b"\\%}" {
+                self.position = i;
+                return Some(&self.underlying_data[start..i]);
+            }
+            let p = &data_slice[i..min(i + 2, len)];
+            if p == b"{{" || p == b"}}" || p == b"{%" || p == b"%}" {
+                self.position = i;
+                return Some(&self.underlying_data[start..i]);
             }
             i += 1;
         }
@@ -502,4 +515,29 @@ pub fn get_destination_url(file_path: &Path, base_input_dir: &Path) -> String {
         output_file = output_file.with_extension("html");
     }
     output_file.to_string_lossy().into_owned()
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn it_tokenizes_strings() {
+        let input = "Hello {{ john }}!";
+        let expected = vec!["Hello ", "{{", " john ", "}}", "!"];
+        let result = tokenize(input).collect::<Vec<_>>();
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn it_escapes_with_backslash(){
+        let input = "Hello \\{{ john }}! \\\\{{ done \\";
+        let result = tokenize(input).collect::<Vec<_>>();
+        let result_str = result.join("");
+        assert_eq!(result_str, "Hello {{ john }}! \\{{ done \\"); // removal of one backslash per escape group.
+        // We expect "}}" after "john "
+        assert!(result.contains(&"}}"), "{:?} should contain '}}}}' (1 occurence)", result);
+        assert!(!result.contains(&"{{"), "{:?} should not contain '{{{{' as they are escaped", result);
+    }
 }
