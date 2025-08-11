@@ -77,7 +77,12 @@ pub async fn lib_main(input_directory: &Path, output_directory: &Path) {
                 listening_addr, printed_addr
             );
 
-            let listener = tokio::net::TcpListener::bind(listening_addr).await.unwrap();
+            let maybe_listener = tokio::net::TcpListener::bind(listening_addr).await;
+
+            let listener = maybe_listener.unwrap_or_else(|_| {
+                eprintln!("Error: Could not bind to port {port}. Is it already in use?");
+                std::process::exit(1);
+            });
             axum::serve(listener, app).await.unwrap();
         });
     }
