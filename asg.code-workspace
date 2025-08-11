@@ -5,5 +5,19 @@
 			"path": "."
 		}
 	],
-	"settings": {}
+	"extensions": {
+		"recommendations": [
+			// Rust
+			"rust-lang.rust-analyzer",
+			// Debugging Rust
+			"vadimcn.vscode-lldb"
+		]
+	},
+	"settings": {
+		"rust-analyzer.completion.autoimport.enable": true,
+		"rust-analyzer.check.command": "clippy",
+		"editor.codeActionsOnSave": {
+			"source.organizeImports": "always",
+		}
+	}
 }

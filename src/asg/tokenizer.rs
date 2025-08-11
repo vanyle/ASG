@@ -375,8 +375,8 @@ fn compile_file_recursive(
         options.compile.allow_dangerous_protocol = true;
         options.compile.gfm_tagfilter = false;
         let result = markdown::to_html_with_options(&raw_data, &options);
-        if result.is_ok() {
-            raw_data = result.unwrap();
+        if let Ok(data) = result {
+            raw_data = data;
         } else {
             let error_msg = result.err().unwrap().to_string();
             let error_file = file_path.to_string_lossy();
@@ -423,8 +423,8 @@ fn compile_file_recursive(
         are_errors_colored = config.get("coloredErrors").unwrap_or(&"".to_string()) == "true";
     }
 
-    if let Some(layout_file) = maybe_layout_file {
-        if !layout_file.is_empty() {
+    if let Some(layout_file) = maybe_layout_file
+        && !layout_file.is_empty() {
             let layout_file = Path::new(&layout_file).to_path_buf();
             if recursion_path.contains(&layout_file) {
                 let m_yellow = |s: &str| {
@@ -458,14 +458,13 @@ fn compile_file_recursive(
                     base_input_dir,
                     recursion_path,
                 );
-                if result.is_some() {
-                    raw_data = result.unwrap();
+                if let Some(result) = result {
+                    raw_data = result;
                 } else {
                     return None;
                 }
             }
         }
-    }
 
     let datetime: DateTime<chrono::Utc> =
         file_metadata.modified().unwrap_or(SystemTime::now()).into();

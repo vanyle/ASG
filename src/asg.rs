@@ -68,11 +68,10 @@ pub fn generate_file(
             println!("Writing to {}", output_file.to_string_lossy());
         }
         let write_result = fs::write(&output_file, content);
-        if is_debug_info {
-            if let Err(e) = write_result {
+        if is_debug_info
+            && let Err(e) = write_result {
                 println!("Error: Could not write it because {}", e);
             }
-        }
         let delta = generation_instant_start.elapsed();
 
         if is_profiling_enabled {
@@ -167,11 +166,10 @@ pub fn process_file(
         notify::EventKind::Remove(_) => {
             let mut output_file =
                 output_directory.join(file.strip_prefix(input_directory).unwrap_or(file));
-            if let Some(file_str) = output_file.to_str() {
-                if file_str.ends_with(".md") {
+            if let Some(file_str) = output_file.to_str()
+                && file_str.ends_with(".md") {
                     output_file = output_file.with_extension("html");
                 }
-            }
             if output_file.exists() {
                 let _ = fs::remove_file(output_file);
             }

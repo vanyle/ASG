@@ -210,11 +210,9 @@ impl LuaEnvironment {
                         for path in cache.file_cache.keys() {
                             if path.file_name().map(|f| f.to_string_lossy().to_string())
                                 == Some(filename.clone())
-                            {
-                                if let Ok(content) = std::fs::read_to_string(path) {
+                                && let Ok(content) = std::fs::read_to_string(path) {
                                     return Ok(content);
                                 }
-                            }
                         }
 
                         Ok(String::new())
