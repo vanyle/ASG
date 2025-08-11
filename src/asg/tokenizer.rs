@@ -16,7 +16,7 @@ pub struct Tokenized<'a> {
     position: usize,
 }
 
-pub fn tokenize(s: &str) -> Tokenized {
+pub fn tokenize(s: &str) -> Tokenized<'_> {
     Tokenized {
         underlying_data: s,
         position: 0,
