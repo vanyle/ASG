@@ -141,7 +141,7 @@ Function of part of the Data API
 - `read_data(filename) -> string`: Read the file named `filename` inside the data directory and return its content
 - `read_csv(filename) -> list`: Read a `.csv` file and return a list of table that represent the rows of the CSV.
 
-You can use `data` to generate visualisations at runtime, store assets that you want to embed in your HTML or put your custom layout files there.
+You can use `data` to generate visualizations at runtime, store assets that you want to embed in your HTML or put your custom layout files there.
 See the layout section for more information about layouts.
 
 ## Standard library
@@ -156,7 +156,9 @@ _These functions are implemented in Nim code_
 - `setvar(key: string, value: string)`: Set a variable like the current layout. This is used to configure build options.
 - `read_data(filename: string)`: Read the file named `filename` inside the `data` folder and return its content. Return an empty string if the file does not exist.
 - `read_csv(filename: string)`: Read the file named `filename` inside the `data` folder and return its content as a table of table for every row of the CSV.
+- `get_body(filename: string)`: Undefined behavior for now, do not use.
 - `parse_html(s: string)`: Parse the HTML inside s and return a table with the headings and their content. Useful for building summaries.
+- `highlight_syntax(code: string, language: string)`: Generate HTML and CSS to statically perform syntax highlighting of the code provided assuming it uses the language provided. This offers the same functionality as HighlightJS without requiring any JavaScript. language can be "py", "rs", or other languages supported by Sublime Text.
 
 ### Lua functions
 

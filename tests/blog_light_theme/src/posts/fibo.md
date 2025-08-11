@@ -29,7 +29,7 @@ for i in range(30):
 ]], "py") }}
 </div>
 
-Quick explaination of how the program works with a diagram.
+Quick explanation of how the program works with a diagram.
 
 ```mermaid
   sequenceDiagram
