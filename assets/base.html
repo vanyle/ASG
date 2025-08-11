@@ -29,11 +29,11 @@ is_math = string.find(body, "$$",1,true) or string.find(body, "\\(",1,true) or s
 <!DOCTYPE html>
 <html lang="{{language}}">
 <head>
-	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<meta name="description" content="{{ description }}">
-	<meta name="author" content="{{ author }}">
-	<meta name="keywords" content="{{ keywords }}">
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<meta name="description" content="{{ description }}" />
+	<meta name="author" content="{{ author }}" />
+	<meta name="keywords" content="{{ keywords }}" />
 	{{ table.concat(heads_data, "\n") }}
 	<title>{{ title }}</title>
 	{{ style }}
