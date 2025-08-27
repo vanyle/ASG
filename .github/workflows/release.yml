@@ -34,6 +34,9 @@ jobs:
           && sudo apt update \
           && sudo apt install gh -y
 
+      - name: Install toolchain
+        run: rustup target add x86_64-unknown-linux-musl
+
       - name: Build
         run: cargo build --target=x86_64-unknown-linux-musl --release
 
