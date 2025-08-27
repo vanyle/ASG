@@ -4,7 +4,7 @@ set -eu
 
 echo "Installing ASG"
 cd ~
-curl -L https://github.com/vanyle/ASG/releases/download/0.2.0/asg-0.2.0-macos-amd64.tar.gz > asg.tar.gz && tar xzf asg.tar.gz
+curl -L https://github.com/vanyle/ASG/releases/download/0.2.2/asg-0.2.2-macos-amd64.tar.gz > asg.tar.gz && tar xzf asg.tar.gz
 mv build .asg
 rm asg.tar.gz
 rm -rf build
