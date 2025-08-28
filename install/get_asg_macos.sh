@@ -4,8 +4,19 @@ set -eu
 
 echo "Installing ASG"
 cd ~
-curl -L https://github.com/vanyle/ASG/releases/download/0.2.2/asg-0.2.2-macos-amd64.tar.gz > asg.tar.gz && tar xzf asg.tar.gz
-mv build .asg
+
+if ! command -v curl > /dev/null; then
+    echo " Please install 'curl' on your system using your favourite package manager. "
+    exit 1
+fi
+
+download_url=$(curl -L -s https://api.github.com/repos/vanyle/asg/releases/latest | grep "macos-amd64.tar.gz" | sed -n '2p' | grep -o -E 'https?://[^"]+')
+
+echo "Fetching $download_url"
+
+curl -L $download_url > asg.tar.gz && tar xzf asg.tar.gz
+rm -rf ~/.asg
+mv build ~/.asg
 rm asg.tar.gz
 rm -rf build
 
