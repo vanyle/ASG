@@ -23,7 +23,15 @@ use notify_debouncer_full::{
 use tokio::sync::broadcast::{self, Sender};
 use tower_http::services::{ServeDir, ServeFile};
 
+pub mod built_info {
+    //  The file has been placed there by the build script.
+    include!(concat!(env!("OUT_DIR"), "/built.rs"));
+}
+
 pub async fn lib_main(input_directory: &Path, output_directory: &Path) {
+    // POC: access compile time computed value.
+    println!("MAGIC_VALUE = {}", built_info::MAGIC_BUILT_VALUE);
+
     let mut env = compile_without_server(input_directory, output_directory, None).await;
 
     let (debounce_event_sender, mut debounce_receiver) = broadcast::channel(16);
