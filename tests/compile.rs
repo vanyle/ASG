@@ -8,7 +8,7 @@ async fn it_compiles_blogs() {
     let output_directory = path::absolute(Path::new("tests/blog_light_theme/build")).unwrap();
     let asset_directory = path::absolute(Path::new("assets")).unwrap();
 
-    asg::compile_without_server(&input_directory, &output_directory, Some(asset_directory)).await;
+    asg::compile_without_server(&input_directory, &output_directory, Some(asset_directory));
 }
 
 #[tokio::test]
@@ -17,7 +17,7 @@ async fn it_generates_documentation() {
     let output_directory = path::absolute(Path::new("tests/documentation/build")).unwrap();
     let asset_directory = path::absolute(Path::new("assets")).unwrap();
 
-    asg::compile_without_server(&input_directory, &output_directory, Some(asset_directory)).await;
+    asg::compile_without_server(&input_directory, &output_directory, Some(asset_directory));
 }
 
 #[tokio::test]
@@ -26,5 +26,5 @@ async fn it_renders_graphics() {
     let output_directory = path::absolute(Path::new("tests/graphics/build")).unwrap();
     let asset_directory = path::absolute(Path::new("assets")).unwrap();
 
-    asg::compile_without_server(&input_directory, &output_directory, Some(asset_directory)).await;
+    asg::compile_without_server(&input_directory, &output_directory, Some(asset_directory));
 }
