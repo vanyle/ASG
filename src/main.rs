@@ -1,8 +1,7 @@
 use std::path::{self, Path};
 
-pub mod buildinfo;
-
 use ::asg::lib_main;
+use asg::asg::buildinfo;
 use colored::Colorize;
 
 #[tokio::main(flavor = "current_thread")]
@@ -13,14 +12,7 @@ async fn main() {
         println!("asg - {}", "Awesome Static Generator".bold());
         println!("Available at {}", "https://github.com/vanyle/asg".green());
 
-        #[allow(clippy::const_is_empty)]
-        // TAG_NAME is generated at compile-time and can be empty or not.
-        let version = if buildinfo::built_info::TAG_NAME.is_empty() {
-            buildinfo::built_info::BRANCH_NAME
-        } else {
-            buildinfo::built_info::TAG_NAME
-        };
-        println!("Version: {}", version.blue());
+        println!("Version: {}", buildinfo::get_asg_version().blue());
         println!();
         println!("Build hash: {}", buildinfo::built_info::COMMIT_HASH.blue());
         println!("Built on {}", buildinfo::built_info::BUILD_TIMESTAMP.blue());
