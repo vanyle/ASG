@@ -166,6 +166,11 @@ _These functions are implemented in `std.lua`_
 
 - `split(s: string, sep: string)`: Cut a string `s` using `sep` as the separator. This is the opposite of `join`.
 
+### Constants
+
+- `asg_commit_hash`: Contains the commit hash of the ASG executable used.
+- `asg_version`: Contains the version of the current ASG executable used.
+
 ## Configuration
 
 You should put your configuration inside the `config.lua` file at the root of your input directory, as `config.lua` is always executed first.
