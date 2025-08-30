@@ -24,30 +24,28 @@ use tokio::sync::broadcast::{self, Sender};
 use tower_http::services::{ServeDir, ServeFile};
 
 pub async fn lib_main(input_directory: &Path, output_directory: &Path) {
-    // POC: access compile time computed value.
-    let mut env = compile_without_server(input_directory, output_directory, None).await;
+    let mut env = compile_without_server(input_directory, output_directory, None);
 
     let (debounce_event_sender, mut debounce_receiver) = broadcast::channel(16);
     let cloned_sender = debounce_event_sender.clone();
     let is_live_reload_enabled = env.is_enabled("livereload");
 
-    let mut debouncer = new_debouncer(
-        Duration::from_millis(100),
-        None,
-        move |result: DebounceEventResult| match result {
-            Ok(events) => events.iter().for_each(|event| {
-                let _ = debounce_event_sender.send(event.clone());
-            }),
-            Err(errors) => errors.iter().for_each(|error| println!("{error:?}")),
-        },
-    )
-    .unwrap();
-
     if is_live_reload_enabled {
+        let mut debouncer = new_debouncer(
+            Duration::from_millis(100),
+            None,
+            move |result: DebounceEventResult| match result {
+                Ok(events) => events.iter().for_each(|event| {
+                    let _ = debounce_event_sender.send(event.clone());
+                }),
+                Err(errors) => errors.iter().for_each(|error| println!("{error:?}")),
+            },
+        )
+        .unwrap();
         println!("👀 Watching {}", input_directory.to_string_lossy());
         let watch_result = debouncer.watch(input_directory, RecursiveMode::Recursive);
         if let Err(e) = watch_result {
-            println!("Error: Could not watch because {}", e);
+            println!("Error: Could not watch because {e}");
         }
     }
 
@@ -66,17 +64,14 @@ pub async fn lib_main(input_directory: &Path, output_directory: &Path) {
                 .route(
                     "/ws",
                     routing::any(async move |ws: WebSocketUpgrade| {
-                        websocket_route(ws, cloned_sender).await
+                        websocket_route(ws, cloned_sender)
                     }),
                 )
                 .fallback_service(serve_dir.clone());
 
-            let listening_addr = format!("0.0.0.0:{}", port);
-            let printed_addr = format!("localhost:{}", port);
-            println!(
-                "👂 Listening on {}\n>>> http://{}\n",
-                listening_addr, printed_addr
-            );
+            let listening_addr = format!("0.0.0.0:{port}");
+            let printed_addr = format!("localhost:{port}");
+            println!("👂 Listening on {listening_addr}\n>>> http://{printed_addr}\n");
 
             let maybe_listener = tokio::net::TcpListener::bind(listening_addr).await;
 
@@ -108,7 +103,7 @@ pub async fn lib_main(input_directory: &Path, output_directory: &Path) {
     }
 }
 
-async fn websocket_route(
+fn websocket_route(
     ws: WebSocketUpgrade,
     debounce_event_receiver: Sender<DebouncedEvent>,
 ) -> Response {
@@ -129,7 +124,7 @@ async fn handle_websocket(mut socket: WebSocket, debounce_event_receiver: Sender
     }
 }
 
-pub async fn compile_without_server(
+pub fn compile_without_server(
     input_directory: &Path,
     output_directory: &Path,
     asset_directory: Option<PathBuf>,

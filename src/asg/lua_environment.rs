@@ -91,7 +91,7 @@ impl LuaEnvironment {
                     .create_function(move |_, asset_path: String| {
                         let asset_path = assets_path_ref.join(Path::new(&asset_path));
                         if asset_path.exists() {
-                            Ok(fs::read_to_string(asset_path).unwrap_or(String::from("")))
+                            Ok(fs::read_to_string(asset_path).unwrap_or_default())
                         } else {
                             Ok(String::new())
                         }
@@ -174,7 +174,7 @@ impl LuaEnvironment {
                         let data_path = data_path.as_path();
                         let data_file = data_path.join(filename);
                         if data_file.exists() {
-                            Ok(fs::read_to_string(data_file).unwrap_or(String::from("")))
+                            Ok(fs::read_to_string(data_file).unwrap_or_default())
                         } else {
                             Ok(String::new())
                         }
@@ -210,9 +210,10 @@ impl LuaEnvironment {
                         for path in cache.file_cache.keys() {
                             if path.file_name().map(|f| f.to_string_lossy().to_string())
                                 == Some(filename.clone())
-                                && let Ok(content) = std::fs::read_to_string(path) {
-                                    return Ok(content);
-                                }
+                                && let Ok(content) = std::fs::read_to_string(path)
+                            {
+                                return Ok(content);
+                            }
                         }
 
                         Ok(String::new())
@@ -310,8 +311,8 @@ fn stringify(value: LuaValue) -> String {
         LuaValue::LightUserData(light_user_data) => {
             format!("LightUserData({})", light_user_data.0.addr())
         }
-        LuaValue::Integer(i) => format!("{}", i),
-        LuaValue::Number(i) => format!("{}", i),
+        LuaValue::Integer(i) => format!("{i}"),
+        LuaValue::Number(i) => format!("{i}"),
         LuaValue::Vector(v) => format!("Vector({},{},{})", v.x(), v.y(), v.z()),
         LuaValue::String(s) => s.to_string_lossy(),
         LuaValue::Table(table) => {
@@ -340,7 +341,7 @@ fn stringify(value: LuaValue) -> String {
             format!("UserData({})", any_user_data.to_pointer().addr())
         }
         LuaValue::Buffer(buffer) => format!("Buffer(len={})", buffer.len()),
-        LuaValue::Error(error) => format!("Error({})", error),
+        LuaValue::Error(error) => format!("Error({error})"),
         LuaValue::Other(_) => "Other(???)".to_string(),
     }
 }

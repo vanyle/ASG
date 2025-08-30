@@ -2,8 +2,11 @@
 name = "asg"
 version = "0.1.0"
 edition = "2024"
+description = "Awesome Static Generator, turns markdown into a website."
+repository = "https://github.com/vanyle/asg"
 
 [profile.release]
+codegen-units = 1
 opt-level = "s"
 strip = "symbols"
 lto = "fat"

@@ -43,11 +43,11 @@ fn main() {
 
     // We are generating a file that will be imported by run main program.
     let _ = built_file.write_all(
-        r#"//
+        r"//
 // EVERYTHING BELOW THIS POINT WAS AUTO-GENERATED DURING COMPILATION. DO NOT MODIFY.
 //
 
-"#
+"
         .as_ref(),
     );
     let _ = built_file
