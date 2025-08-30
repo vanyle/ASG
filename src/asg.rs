@@ -2,6 +2,7 @@
 use std::path::Path;
 use std::{fs, time};
 
+pub mod buildinfo;
 pub mod csv;
 pub mod displayluaerror;
 pub mod git_times;

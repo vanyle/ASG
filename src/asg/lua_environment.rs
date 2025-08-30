@@ -10,6 +10,7 @@ use colored::Colorize;
 use mlua::{Lua, LuaSerdeExt, Value as LuaValue};
 use serde::{Deserialize, Serialize};
 
+use super::buildinfo;
 use super::highlight_syntax;
 use super::{csv, handle_html, highlight_syntax::SyntaxHighlighter, tokenizer};
 
@@ -257,6 +258,24 @@ impl LuaEnvironment {
                         Ok(html)
                     })
                     .unwrap(),
+            )
+            .unwrap();
+
+        env.lua
+            .globals()
+            .set(
+                "asg_commit_hash",
+                env.lua
+                    .create_string(buildinfo::built_info::COMMIT_HASH)
+                    .unwrap(),
+            )
+            .unwrap();
+
+        env.lua
+            .globals()
+            .set(
+                "asg_version",
+                env.lua.create_string(buildinfo::get_asg_version()).unwrap(),
             )
             .unwrap();
 
