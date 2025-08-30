@@ -41,15 +41,15 @@ impl<'a> Iterator for Tokenized<'a> {
         let mut i = start;
         let p = &data_slice[i..min(i + 3, len)];
         if p == b"\\{{" || p == b"\\}}" || p == b"\\{%" || p == b"\\%}" {
-            // We have an escaped delimiter, we remove one backslash and we keep going. 
+            // We have an escaped delimiter, we remove one backslash and we keep going.
             start += 1;
             i += 2;
-        }else{
+        } else {
             // If we start with a delimiter, we should return it
             let p = &data_slice[i..min(i + 2, len)];
             if p == b"{{" || p == b"}}" || p == b"{%" || p == b"%}" {
                 self.position = i + 2;
-                return Some(&self.underlying_data[start..min(i+2, len)]);
+                return Some(&self.underlying_data[start..min(i + 2, len)]);
             }
         }
 
@@ -224,15 +224,15 @@ pub fn tokenize_file(
             }
         } else if is_in_loop {
             if is_in_lua {
-                lua_code_buffer.push_str(&format!("table.insert(result,({}))\n", t));
+                lua_code_buffer.push_str(&format!("table.insert(result,({t}))\n"));
             } else if is_in_lua_controller {
                 lua_code_buffer.push_str(&format!("{}\n", t.trim()));
             } else {
-                lua_code_buffer.push_str(&format!("table.insert(result,[=====[{}]=====])\n", t));
+                lua_code_buffer.push_str(&format!("table.insert(result,[=====[{t}]=====])\n"));
             }
         } else if is_in_lua {
             chunks.push(ParseChunk {
-                chunk: format!("return {}", t),
+                chunk: format!("return {t}"),
                 chunk_type: ParseChunkType::LuaValue,
             });
         } else if is_in_lua_controller {
@@ -243,7 +243,7 @@ pub fn tokenize_file(
             {
                 is_in_loop = true;
                 is_end_of_loop = false;
-                lua_code_buffer = format!("result = {{}}\n{}\n", stripped).to_string();
+                lua_code_buffer = format!("result = {{}}\n{stripped}\n").to_string();
             } else {
                 chunks.push(ParseChunk {
                     chunk: t.to_string(),
@@ -261,14 +261,14 @@ pub fn tokenize_file(
     let result = Some(PartialParse {
         chunks,
         timestamp: time::SystemTime::now(),
-        real_path: input_path.to_path_buf(),
+        real_path: input_path.clone(),
         _partial_parse_time: start_of_parse.elapsed(),
     });
     // Don't fill the cache with large files (>10Mo)
     if file_content.len() < 10 * 1024 * 1024 * 8 {
         cache
             .cache
-            .insert(input_path.to_path_buf(), result.clone().unwrap());
+            .insert(input_path.clone(), result.clone().unwrap());
     }
     result
 }
@@ -349,7 +349,7 @@ fn compile_file_recursive(
                     .set_name("@".to_owned() + &file_path.to_string_lossy())
                     .exec();
                 match result {
-                    Ok(_) => {}
+                    Ok(()) => {}
                     Err(e) => {
                         let error_msg = e.to_string();
                         let error_file = file_path.to_string_lossy();
@@ -412,72 +412,73 @@ fn compile_file_recursive(
         let config = env.config_table.borrow();
         let maybe_tags = config
             .get("tags")
-            .map(|s| s.to_string())
-            .unwrap_or(String::from(""));
+            .map(ToString::to_string)
+            .unwrap_or_default();
 
         tags = maybe_tags
-            .split(",")
-            .map(|s| s.to_string())
+            .split(',')
+            .map(ToString::to_string)
             .collect::<Vec<String>>();
 
         let mut lines = without_html.lines().filter(|l| !l.trim().is_empty());
         word_count = without_html.split_whitespace().count();
         title = config
             .get("title")
-            .map(|s| s.to_string())
-            .or(lines.next().map(|s| s.to_string()));
+            .map(ToString::to_string)
+            .or(lines.next().map(ToString::to_string));
 
         description = config
             .get("description")
-            .map(|s| s.to_string())
-            .or(lines.next().map(|s| s.to_string()));
+            .map(ToString::to_string)
+            .or(lines.next().map(ToString::to_string));
 
-        maybe_layout_file = config.get("layout").map(|s| s.to_string());
-        are_errors_colored = config.get("coloredErrors").unwrap_or(&"".to_string()) == "true";
+        maybe_layout_file = config.get("layout").map(ToString::to_string);
+        are_errors_colored = config.get("coloredErrors").unwrap_or(&String::new()) == "true";
     }
 
     if let Some(layout_file) = maybe_layout_file
-        && !layout_file.is_empty() {
-            let layout_file = Path::new(&layout_file).to_path_buf();
-            if recursion_path.contains(&layout_file) {
-                let m_yellow = |s: &str| {
-                    if are_errors_colored {
-                        s.yellow()
-                    } else {
-                        s.clear()
-                    }
-                };
-
-                println!(
-                    "{}",
-                    m_yellow("Warning: Infinite inclusion loop in layouts")
-                );
-                println!("  The recursion stack is:");
-                println!(
-                    "  {}",
-                    recursion_path
-                        .iter_mut()
-                        .map(|p| p.to_string_lossy().to_string())
-                        .collect::<Vec<String>>()
-                        .join(",")
-                );
-                println!("The last file is repeated, this is a loop.");
-            } else {
-                env.lua.globals().set("body", raw_data).unwrap();
-                let result = compile_file_recursive(
-                    env,
-                    &layout_file,
-                    _out_path,
-                    base_input_dir,
-                    recursion_path,
-                );
-                if let Some(result) = result {
-                    raw_data = result;
+        && !layout_file.is_empty()
+    {
+        let layout_file = Path::new(&layout_file).to_path_buf();
+        if recursion_path.contains(&layout_file) {
+            let m_yellow = |s: &str| {
+                if are_errors_colored {
+                    s.yellow()
                 } else {
-                    return None;
+                    s.clear()
                 }
+            };
+
+            println!(
+                "{}",
+                m_yellow("Warning: Infinite inclusion loop in layouts")
+            );
+            println!("  The recursion stack is:");
+            println!(
+                "  {}",
+                recursion_path
+                    .iter_mut()
+                    .map(|p| p.to_string_lossy().to_string())
+                    .collect::<Vec<String>>()
+                    .join(",")
+            );
+            println!("The last file is repeated, this is a loop.");
+        } else {
+            env.lua.globals().set("body", raw_data).unwrap();
+            let result = compile_file_recursive(
+                env,
+                &layout_file,
+                _out_path,
+                base_input_dir,
+                recursion_path,
+            );
+            if let Some(result) = result {
+                raw_data = result;
+            } else {
+                return None;
             }
         }
+    }
 
     let datetime: DateTime<chrono::Utc> =
         file_metadata.modified().unwrap_or(SystemTime::now()).into();
@@ -495,9 +496,9 @@ fn compile_file_recursive(
         created_at: git_times::get_git_creation_time(&blame)
             .format("%d/%m/%Y %T")
             .to_string(),
-        title: title.unwrap_or("".to_string()),
-        description: description.unwrap_or("".to_string()),
-        tags: tags.iter().map(|s| s.to_string()).collect(),
+        title: title.unwrap_or(String::new()),
+        description: description.unwrap_or(String::new()),
+        tags: tags.iter().map(ToString::to_string).collect(),
     };
     env.cache
         .borrow_mut()
@@ -517,7 +518,6 @@ pub fn get_destination_url(file_path: &Path, base_input_dir: &Path) -> String {
     output_file.to_string_lossy().into_owned()
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -531,13 +531,21 @@ mod tests {
     }
 
     #[test]
-    fn it_escapes_with_backslash(){
+    fn it_escapes_with_backslash() {
         let input = "Hello \\{{ john }}! \\\\{{ done \\";
         let result = tokenize(input).collect::<Vec<_>>();
         let result_str = result.join("");
         assert_eq!(result_str, "Hello {{ john }}! \\{{ done \\"); // removal of one backslash per escape group.
         // We expect "}}" after "john "
-        assert!(result.contains(&"}}"), "{:?} should contain '}}}}' (1 occurence)", result);
-        assert!(!result.contains(&"{{"), "{:?} should not contain '{{{{' as they are escaped", result);
+        assert!(
+            result.contains(&"}}"),
+            "{:?} should contain '}}}}' (1 occurence)",
+            result
+        );
+        assert!(
+            !result.contains(&"{{"),
+            "{:?} should not contain '{{{{' as they are escaped",
+            result
+        );
     }
 }

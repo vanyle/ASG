@@ -68,10 +68,9 @@ pub fn generate_file(
             println!("Writing to {}", output_file.to_string_lossy());
         }
         let write_result = fs::write(&output_file, content);
-        if is_debug_info
-            && let Err(e) = write_result {
-                println!("Error: Could not write it because {}", e);
-            }
+        if is_debug_info && let Err(e) = write_result {
+            println!("Error: Could not write it because {e}");
+        }
         let delta = generation_instant_start.elapsed();
 
         if is_profiling_enabled {
@@ -82,7 +81,7 @@ pub fn generate_file(
             );
         }
     } else {
-        println!("Error: Could not compile file {:?}", input_file);
+        println!("Error: Could not compile file {}", input_file.display());
     }
 }
 
@@ -145,20 +144,12 @@ pub fn process_file(
     let is_debug_info = env.is_enabled("debugInfo");
 
     if is_debug_info {
-        println!("OS Event received: {:?}", event_kind);
+        println!("OS Event received: {event_kind:?}");
     }
 
     match event_kind {
-        notify::EventKind::Any => {
-            println!("Any event: {:?}", file);
-        }
-        notify::EventKind::Access(_) => {}
-        notify::EventKind::Create(_) => {
-            if file.exists() {
-                generate_file(env, file, input_directory, output_directory);
-            }
-        }
-        notify::EventKind::Modify(_) => {
+        notify::EventKind::Any | notify::EventKind::Access(_) | notify::EventKind::Other => {}
+        notify::EventKind::Create(_) | notify::EventKind::Modify(_) => {
             if file.exists() {
                 generate_file(env, file, input_directory, output_directory);
             }
@@ -167,15 +158,13 @@ pub fn process_file(
             let mut output_file =
                 output_directory.join(file.strip_prefix(input_directory).unwrap_or(file));
             if let Some(file_str) = output_file.to_str()
-                && file_str.ends_with(".md") {
-                    output_file = output_file.with_extension("html");
-                }
+                && file_str.to_lowercase().ends_with(".md")
+            {
+                output_file = output_file.with_extension("html");
+            }
             if output_file.exists() {
                 let _ = fs::remove_file(output_file);
             }
-        }
-        notify::EventKind::Other => {
-            println!("Other event: {:?}", file);
         }
     }
 }

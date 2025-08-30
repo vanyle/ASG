@@ -13,17 +13,17 @@ impl LuaEnvironment {
         };
 
         println!("{}", m_red("Compilation Error:"));
-        println!("  Concerning {}", error_file);
-        println!("  {}", error_msg);
+        println!("  Concerning {error_file}");
+        println!("  {error_msg}");
 
         if let Some(error_code) = m_error_code {
             println!("  {}", m_red("Code responsible:"));
 
             if error_code.len() > 400 {
                 let error_code = error_code.split_at(400).0;
-                println!("{}... (omited)", error_code);
+                println!("{error_code}... (omited)");
             } else {
-                println!("{}", error_code);
+                println!("{error_code}");
             }
 
             println!("{}", m_red("-----"));
