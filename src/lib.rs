@@ -29,19 +29,20 @@ pub async fn lib_main(input_directory: &Path, output_directory: &Path) {
     let (debounce_event_sender, mut debounce_receiver) = broadcast::channel(16);
     let cloned_sender = debounce_event_sender.clone();
     let is_live_reload_enabled = env.is_enabled("livereload");
+    // The debouncer needs to stay alive for the whole program.
+    let mut debouncer = new_debouncer(
+        Duration::from_millis(100),
+        None,
+        move |result: DebounceEventResult| match result {
+            Ok(events) => events.iter().for_each(|event| {
+                let _ = debounce_event_sender.send(event.clone());
+            }),
+            Err(errors) => errors.iter().for_each(|error| println!("{error:?}")),
+        },
+    )
+    .unwrap();
 
     if is_live_reload_enabled {
-        let mut debouncer = new_debouncer(
-            Duration::from_millis(100),
-            None,
-            move |result: DebounceEventResult| match result {
-                Ok(events) => events.iter().for_each(|event| {
-                    let _ = debounce_event_sender.send(event.clone());
-                }),
-                Err(errors) => errors.iter().for_each(|error| println!("{error:?}")),
-            },
-        )
-        .unwrap();
         println!("👀 Watching {}", input_directory.to_string_lossy());
         let watch_result = debouncer.watch(input_directory, RecursiveMode::Recursive);
         if let Err(e) = watch_result {
@@ -91,6 +92,9 @@ pub async fn lib_main(input_directory: &Path, output_directory: &Path) {
                 break;
             };
             for path in &event.paths {
+                if env.is_enabled("debugInfo") {
+                    println!("Processing {}", path.display());
+                }
                 process_file(
                     &mut env,
                     event.kind,
