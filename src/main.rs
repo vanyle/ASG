@@ -8,6 +8,7 @@ use colored::Colorize;
 async fn main() {
     let args: Vec<String> = std::env::args().collect();
 
+    #[allow(clippy::print_stdout)]
     if args.len() == 2 && (args[1] == "--version" || args[1] == "-v" || args[1] == "-version") {
         println!("asg - {}", "Awesome Static Generator".bold());
         println!("Available at {}", "https://github.com/vanyle/asg".green());
@@ -19,6 +20,7 @@ async fn main() {
         std::process::exit(0);
     }
 
+    #[allow(clippy::print_stdout)]
     if args.len() != 3 {
         println!("Usage: asg <input_directory> <output_directory>");
         println!("Read the README.md for more information.");
@@ -26,6 +28,7 @@ async fn main() {
     }
 
     let resolve_path = |arg: &str| -> path::PathBuf {
+        #[allow(clippy::print_stdout)]
         match path::absolute(Path::new(arg)) {
             Ok(path) => path,
             Err(e) => {

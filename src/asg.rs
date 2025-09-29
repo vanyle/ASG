@@ -38,6 +38,7 @@ pub fn generate_file(
 
     // Let's run config.lua if it exists
     let config_file = base_input_directory.join("config.lua");
+    #[allow(clippy::print_stdout)]
     if config_file.exists() {
         env.run_file_and_display_error(&config_file);
     } else {
@@ -54,6 +55,7 @@ pub fn generate_file(
     let destination_url = tokenizer::get_destination_url(input_file, base_input_directory);
     let output_file = output_directory.join(&destination_url);
 
+    #[allow(clippy::print_stdout)]
     if is_debug_info {
         println!("Compiling {}", input_file.to_string_lossy());
     }
@@ -61,6 +63,7 @@ pub fn generate_file(
     let maybe_str =
         tokenizer::compile_file(env, input_file, Some(&output_file), base_input_directory);
 
+    #[allow(clippy::print_stdout)]
     if let Some(content) = maybe_str {
         let prefix = output_file.parent();
         if let Some(prefix) = prefix {
@@ -130,6 +133,7 @@ pub fn process_files(env: &mut LuaEnvironment, input_directory: &Path, output_di
     recursive_file_walk(env, input_directory, input_directory, output_directory);
 
     let is_profiling_enabled = env.is_enabled("profiler");
+    #[allow(clippy::print_stdout)]
     if is_profiling_enabled {
         let delta = now.elapsed();
         println!("Total time: {} ms", delta.as_millis());
@@ -145,6 +149,7 @@ pub fn process_file(
 ) {
     let is_debug_info = env.is_enabled("debugInfo");
 
+    #[allow(clippy::print_stdout)]
     if is_debug_info {
         println!("OS Event received: {event_kind:?}");
     }

@@ -3,6 +3,7 @@ use colored::Colorize;
 use crate::asg::LuaEnvironment;
 
 impl LuaEnvironment {
+    #[allow(clippy::print_stdout)]
     pub fn display_error(&self, error_msg: &str, error_file: &str, m_error_code: Option<&str>) {
         let config = self.config_table.borrow();
         // color is enabled by default.

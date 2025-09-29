@@ -440,6 +440,7 @@ fn compile_file_recursive(
         && !layout_file.is_empty()
     {
         let layout_file = Path::new(&layout_file).to_path_buf();
+        #[allow(clippy::print_stdout)]
         if recursion_path.contains(&layout_file) {
             let m_yellow = |s: &str| {
                 if are_errors_colored {

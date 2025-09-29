@@ -33,15 +33,19 @@ pub async fn lib_main(input_directory: &Path, output_directory: &Path) {
     let mut debouncer = new_debouncer(
         Duration::from_millis(100),
         None,
-        move |result: DebounceEventResult| match result {
-            Ok(events) => events.iter().for_each(|event| {
-                let _ = debounce_event_sender.send(event.clone());
-            }),
-            Err(errors) => errors.iter().for_each(|error| println!("{error:?}")),
+        move |result: DebounceEventResult| {
+            #[allow(clippy::print_stdout)]
+            match result {
+                Ok(events) => events.iter().for_each(|event| {
+                    let _ = debounce_event_sender.send(event.clone());
+                }),
+                Err(errors) => errors.iter().for_each(|error| println!("{error:?}")),
+            }
         },
     )
     .unwrap();
 
+    #[allow(clippy::print_stdout)]
     if is_live_reload_enabled {
         println!("👀 Watching {}", input_directory.to_string_lossy());
         let watch_result = debouncer.watch(input_directory, RecursiveMode::Recursive);
@@ -60,6 +64,7 @@ pub async fn lib_main(input_directory: &Path, output_directory: &Path) {
 
         let serve_dir = ServeDir::new(output_directory).fallback(ServeFile::new(file_404));
 
+        #[allow(clippy::print_stdout)]
         tokio::spawn(async move {
             let app = Router::new()
                 .route(
@@ -92,6 +97,7 @@ pub async fn lib_main(input_directory: &Path, output_directory: &Path) {
                 break;
             };
             for path in &event.paths {
+                #[allow(clippy::print_stdout)]
                 if env.is_enabled("debugInfo") {
                     println!("Processing {}", path.display());
                 }
@@ -133,6 +139,7 @@ pub fn compile_without_server(
     output_directory: &Path,
     asset_directory: Option<PathBuf>,
 ) -> LuaEnvironment {
+    #[allow(clippy::print_stdout)]
     if !input_directory.exists() {
         println!(
             "Input does not exist: {}",

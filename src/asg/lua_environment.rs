@@ -271,10 +271,6 @@ impl LuaEnvironment {
                     .create_function(move |_, time: (String,)| {
                         let parsed_time =
                             chrono::NaiveDateTime::parse_from_str(&time.0, DATE_FORMAT);
-                        println!(
-                            "Parsed time: {:?} - {} ; {}",
-                            parsed_time, &time.0, DATE_FORMAT
-                        );
                         let Ok(dt) = parsed_time else {
                             return Ok(time.0);
                         };
@@ -304,6 +300,7 @@ impl LuaEnvironment {
 
         // Let's run std.lua if it exists
         let std_file = assets_path.join("std.lua");
+        #[allow(clippy::print_stdout)]
         if std_file.exists() {
             env.run_file_and_display_error(&std_file);
         } else {
