@@ -4,6 +4,7 @@ use std::{fs, time};
 
 pub mod buildinfo;
 pub mod csv;
+pub mod date_format;
 pub mod displayluaerror;
 pub mod git_times;
 pub mod handle_html;

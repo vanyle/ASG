@@ -10,6 +10,8 @@ use colored::Colorize;
 use mlua::{Lua, LuaSerdeExt, Value as LuaValue};
 use serde::{Deserialize, Serialize};
 
+use crate::asg::date_format::DATE_FORMAT;
+
 use super::buildinfo;
 use super::highlight_syntax;
 use super::{csv, handle_html, highlight_syntax::SyntaxHighlighter, tokenizer};
@@ -256,6 +258,27 @@ impl LuaEnvironment {
                         let sh = SyntaxHighlighter::new();
                         let html = highlight_syntax::highlight_syntax(&sh, &code, &lang);
                         Ok(html)
+                    })
+                    .unwrap(),
+            )
+            .unwrap();
+
+        env.lua
+            .globals()
+            .set(
+                "to_rfc2822_date",
+                env.lua
+                    .create_function(move |_, time: (String,)| {
+                        let parsed_time =
+                            chrono::NaiveDateTime::parse_from_str(&time.0, DATE_FORMAT);
+                        println!(
+                            "Parsed time: {:?} - {} ; {}",
+                            parsed_time, &time.0, DATE_FORMAT
+                        );
+                        let Ok(dt) = parsed_time else {
+                            return Ok(time.0);
+                        };
+                        Ok(dt.and_utc().to_rfc2822())
                     })
                     .unwrap(),
             )

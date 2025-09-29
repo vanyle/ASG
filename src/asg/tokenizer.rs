@@ -6,7 +6,10 @@ use std::{
     time::{self, SystemTime},
 };
 
-use crate::asg::lua_environment::{FileInfo, LuaEnvironment, get_asset_dir_path, get_exe_dir_path};
+use crate::asg::{
+    date_format::DATE_FORMAT,
+    lua_environment::{FileInfo, LuaEnvironment, get_asset_dir_path, get_exe_dir_path},
+};
 use chrono::DateTime;
 use colored::Colorize;
 
@@ -312,17 +315,14 @@ fn compile_file_recursive(
     let blame = git_times::git_blame(file_path);
 
     file_info_table
-        .set(
-            "last_modified_os",
-            datetime.format("%d/%m/%Y %T").to_string(),
-        )
+        .set("last_modified_os", datetime.format(DATE_FORMAT).to_string())
         .unwrap();
 
     file_info_table
         .set(
             "last_modified",
             git_times::get_git_modification_time(&blame)
-                .format("%d/%m/%Y %T")
+                .format(DATE_FORMAT)
                 .to_string(),
         )
         .unwrap();
@@ -331,7 +331,7 @@ fn compile_file_recursive(
         .set(
             "created_at",
             git_times::get_git_creation_time(&blame)
-                .format("%d/%m/%Y %T")
+                .format(DATE_FORMAT)
                 .to_string(),
         )
         .unwrap();
