@@ -1,8 +1,11 @@
-use std::path::Path;
+use std::{
+    collections::HashMap,
+    path::{Path, PathBuf},
+};
 
 use chrono::{DateTime, Local, TimeZone};
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct Commit {
     pub hash: String,
     pub message: String,
@@ -57,6 +60,21 @@ fn parse_commits(output: &str) -> BlameInfo {
 }
 
 pub fn git_blame(path: &Path) -> BlameInfo {
+    use lazy_static::lazy_static;
+    use std::sync::Mutex;
+    lazy_static! {
+        static ref BLAME_CACHE: Mutex<HashMap<PathBuf, BlameInfo>> = Mutex::new(HashMap::new());
+    }
+    let mut map = BLAME_CACHE.lock().unwrap();
+    if let Some(blame_info) = map.get(path) {
+        return blame_info.clone();
+    }
+    let blame_info = git_blame_internal(path);
+    map.insert(path.to_path_buf(), blame_info.clone());
+    blame_info
+}
+
+fn git_blame_internal(path: &Path) -> BlameInfo {
     if !path.exists() {
         return vec![];
     }

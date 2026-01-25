@@ -5,3 +5,4 @@ TODO
 tests/**/build
 .DS_Store
 output/
+flamegraph.svg

@@ -476,11 +476,7 @@ fn compile_file_recursive(
                 base_input_dir,
                 recursion_path,
             );
-            if let Ok(result) = result {
-                raw_data = result;
-            } else {
-                return result;
-            }
+            raw_data = result?;
         }
     }
 

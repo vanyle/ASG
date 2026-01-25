@@ -1,3 +1,4 @@
+use std::fs::File;
 /// File process
 use std::path::Path;
 use std::{fs, time};
@@ -34,18 +35,6 @@ pub fn generate_file(
         let output_file = output_directory.join(&destination_url);
         let _ = fs::copy(input_file, &output_file);
         return;
-    }
-
-    // Let's run config.lua if it exists
-    let config_file = base_input_directory.join("config.lua");
-    #[allow(clippy::print_stdout)]
-    if config_file.exists() {
-        env.run_file_and_display_error(&config_file);
-    } else {
-        println!(
-            "Error: Config file not at {}",
-            config_file.to_string_lossy()
-        );
     }
 
     let is_debug_info = env.is_enabled("debugInfo");
@@ -127,8 +116,20 @@ fn recursive_file_walk(
 }
 
 pub fn process_files(env: &mut LuaEnvironment, input_directory: &Path, output_directory: &Path) {
+    // Let's run config.lua if it exists
+    run_config_file(env, input_directory);
+
     // Parse posts first
     let now = time::Instant::now();
+    let is_profiling_enabled = env.is_enabled("profiler");
+    let mut guard = None;
+    if is_profiling_enabled {
+        guard = pprof::ProfilerGuardBuilder::default()
+            .frequency(1000)
+            .blocklist(&["libc", "libgcc", "pthread", "vdso"])
+            .build()
+            .ok();
+    }
 
     let posts_directory = input_directory.join("posts");
     if posts_directory.exists() {
@@ -143,6 +144,16 @@ pub fn process_files(env: &mut LuaEnvironment, input_directory: &Path, output_di
     if is_profiling_enabled {
         let delta = now.elapsed();
         println!("Total time: {} ms", delta.as_millis());
+
+        if let Some(guard) = guard
+            && let Ok(report) = guard.report().build()
+        {
+            let file = File::create("flamegraph.svg").unwrap();
+            let mut options = pprof::flamegraph::Options::default();
+            options.image_width = Some(2500);
+            let _ = report.flamegraph_with_options(file, &mut options);
+            println!("Flamegraph written to flamegraph.svg");
+        };
     }
 }
 
@@ -159,6 +170,9 @@ pub fn process_file(
     if is_debug_info {
         println!("OS Event received: {event_kind:?}");
     }
+
+    // Rerun config file when there is an event.
+    run_config_file(env, input_directory);
 
     match event_kind {
         notify::EventKind::Any | notify::EventKind::Access(_) | notify::EventKind::Other => {}
@@ -179,5 +193,18 @@ pub fn process_file(
                 let _ = fs::remove_file(output_file);
             }
         }
+    }
+}
+
+pub fn run_config_file(env: &mut LuaEnvironment, input_directory: &Path) {
+    let config_file = input_directory.join("config.lua");
+    #[allow(clippy::print_stdout)]
+    if config_file.exists() {
+        env.run_file_and_display_error(&config_file);
+    } else {
+        println!(
+            "Error: Config file not at {}",
+            config_file.to_string_lossy()
+        );
     }
 }
