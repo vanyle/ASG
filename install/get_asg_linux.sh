@@ -15,14 +15,15 @@ download_url=$(curl -L -s https://api.github.com/repos/vanyle/asg/releases/lates
 echo "Fetching $download_url"
 
 curl -L $download_url > asg.tar.gz && tar xzf asg.tar.gz
-rm ~/.local/bin/asg
+rm -f ~/.local/bin/asg
 rm -rf ~/.local/share/asg
 mkdir -p ~/.local/share/asg
 mkdir -p ~/.local/bin
 mv build ~/.local/share/asg
-rm asg.tar.gz
+rm -f asg.tar.gz
 rm -rf build
-mv ~/.local/share/asg/asg ~/.local/bin/
+mv ~/.local/share/asg/build/asg ~/.local/bin/
+mv ~/.local/share/asg/build/assets ~/.local/share/asg/assets
 
 export PATH="$HOME/.local/bin:$PATH"
 
