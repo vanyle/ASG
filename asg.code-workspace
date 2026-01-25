@@ -22,5 +22,8 @@
 		"[html]": {
 			"editor.formatOnSave": false,
 		},
+		"[markdown]": {
+			"editor.defaultFormatter": "vscode.markdown-language-features",
+		}
 	},
 }

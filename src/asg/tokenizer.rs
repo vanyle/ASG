@@ -146,6 +146,7 @@ pub fn tokenize_file(
     // - relative to cwd.
     // - relative to the executable
     // - relative to executable/assets
+    // - relative to executable/../share/asg/assets (as asg can be installed in ~/.local/bin)
 
     let mut input_path = relative_path.to_path_buf();
     if !input_path.exists() || !input_path.is_file() {
@@ -285,7 +286,7 @@ pub fn compile_file(
     in_path: &Path,
     out_path: Option<&Path>,
     base_input_dir: &Path,
-) -> Option<String> {
+) -> Result<String, String> {
     let mut v = vec![];
     compile_file_recursive(env, in_path, out_path, base_input_dir, &mut v)
 }
@@ -296,9 +297,11 @@ fn compile_file_recursive(
     _out_path: Option<&Path>,
     base_input_dir: &Path,
     recursion_path: &mut Vec<PathBuf>,
-) -> Option<String> {
+) -> Result<String, String> {
     let partial_parse = tokenize_file(&mut env.cache.borrow_mut(), in_path, base_input_dir);
-    partial_parse.as_ref()?; // if none, return
+    partial_parse
+        .as_ref()
+        .ok_or(format!("Could not tokenize file {}", in_path.display()))?;
     let partial_parse = partial_parse.unwrap();
     recursion_path.push(partial_parse.real_path.as_path().to_owned());
 
@@ -473,10 +476,10 @@ fn compile_file_recursive(
                 base_input_dir,
                 recursion_path,
             );
-            if let Some(result) = result {
+            if let Ok(result) = result {
                 raw_data = result;
             } else {
-                return None;
+                return result;
             }
         }
     }
@@ -505,7 +508,7 @@ fn compile_file_recursive(
         .borrow_mut()
         .file_cache
         .insert(in_path.to_path_buf(), fpi);
-    Some(raw_data)
+    Ok(raw_data)
 }
 
 pub fn get_destination_url(file_path: &Path, base_input_dir: &Path) -> String {

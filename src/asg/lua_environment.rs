@@ -44,9 +44,21 @@ pub fn get_exe_dir_path() -> PathBuf {
 
 pub fn get_asset_dir_path() -> PathBuf {
     let current_exe_dir = get_exe_dir_path();
-
-    current_exe_dir.join("assets")
+    let likely_asset_dir = current_exe_dir.join("assets");
+    if likely_asset_dir.exists() {
+        return likely_asset_dir;
+    }
+    let likely_asset_dir = current_exe_dir.join("../share/asg/assets");
+    if likely_asset_dir.exists() {
+        return likely_asset_dir;
+    }
+    let likely_asset_dir = current_exe_dir.join("../../assets");
+    if likely_asset_dir.exists() {
+        return likely_asset_dir;
+    }
+    panic!("Could not find assets directory, incorrect installation?");
 }
+
 impl LuaEnvironment {
     pub fn new(
         input_directory: &Path,

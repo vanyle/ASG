@@ -64,29 +64,35 @@ pub fn generate_file(
         tokenizer::compile_file(env, input_file, Some(&output_file), base_input_directory);
 
     #[allow(clippy::print_stdout)]
-    if let Some(content) = maybe_str {
-        let prefix = output_file.parent();
-        if let Some(prefix) = prefix {
-            let _ = fs::create_dir_all(prefix);
-        }
-        if is_debug_info {
-            println!("Writing to {}", output_file.to_string_lossy());
-        }
-        let write_result = fs::write(&output_file, content);
-        if is_debug_info && let Err(e) = write_result {
-            println!("Error: Could not write it because {e}");
-        }
-        let delta = generation_instant_start.elapsed();
+    match maybe_str {
+        Ok(content) => {
+            let prefix = output_file.parent();
+            if let Some(prefix) = prefix {
+                let _ = fs::create_dir_all(prefix);
+            }
+            if is_debug_info {
+                println!("Writing to {}", output_file.to_string_lossy());
+            }
+            let write_result = fs::write(&output_file, content);
+            if is_debug_info && let Err(e) = write_result {
+                println!("Error: Could not write it because {e}");
+            }
+            let delta = generation_instant_start.elapsed();
 
-        if is_profiling_enabled {
+            if is_profiling_enabled {
+                println!(
+                    "  - {} ms to generate {}",
+                    delta.as_millis(),
+                    &destination_url
+                );
+            }
+        }
+        Err(cause) => {
             println!(
-                "  - {} ms to generate {}",
-                delta.as_millis(),
-                &destination_url
+                "Error: Could not compile file {}:\n{cause}",
+                input_file.display()
             );
         }
-    } else {
-        println!("Error: Could not compile file {}", input_file.display());
     }
 }
 

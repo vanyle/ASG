@@ -9,6 +9,8 @@ $download_url = (Invoke-WebRequest "https://api.github.com/repos/vanyle/asg/rele
 
 Invoke-WebRequest $download_url -OutFile asg.tar.gz
 tar xzf asg.tar.gz
+# On windows, there is no .local convention, so we use .asg instead.
+Remove-Item -Path .asg -Force -Recurse
 Move-Item -Path build -Destination .asg
 Remove-Item -Path asg.tar.gz
 
